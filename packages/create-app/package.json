@@ -1,0 +1,28 @@
+{
+  "name": "@lcooper/create-app",
+  "version": "0.0.0",
+  "description": "Create web apps with no configuration",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luciancooper/app-toolkit.git",
+    "directory": "packages/create-app"
+  },
+  "keywords": [
+    "webpack",
+    "react",
+    "template"
+  ],
+  "author": "Lucian Cooper <cooperlucian@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/luciancooper/app-toolkit/issues"
+  },
+  "homepage": "https://github.com/luciancooper/app-toolkit/packages/create-app#readme"
+}

@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://github.com/luciancooper/app-toolkit/issues"
   },
-  "homepage": "https://github.com/luciancooper/app-toolkit/packages/create-app#readme"
+  "homepage": "https://github.com/luciancooper/app-toolkit/packages/create-app#readme",
+  "dependencies": {
+    "chalk": "^4.1.0"
+  }
 }

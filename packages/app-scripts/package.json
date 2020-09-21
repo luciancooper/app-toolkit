@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "Configuration and scripts for js web apps",
   "main": "index.js",
+  "bin": {
+    "app-scripts": "./bin/app-scripts.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

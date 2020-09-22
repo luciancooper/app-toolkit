@@ -62,6 +62,7 @@ module.exports = (mode) => ({
                         loader: require.resolve('eslint-loader'),
                         options: {
                             eslintPath: require.resolve('eslint'),
+                            formatter: require.resolve('../lib/eslint-formatter'),
                             cache: true,
                             emitWarning: true,
                         },
@@ -220,6 +221,8 @@ module.exports = (mode) => ({
             stylelintPath: require.resolve('stylelint'),
             files: '**/*.s(a|c)ss',
             emitWarning: true,
+            // eslint-disable-next-line global-require
+            formatter: require('../lib/stylelint-formatter'),
         }),
         // production plugins
         ...(mode === 'production') ? [

@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/luciancooper/app-toolkit/packages/create-app#readme",
   "dependencies": {
-    "chalk": "^4.1.0"
+    "chalk": "^4.1.0",
+    "fs-extra": "^9.0.1"
   }
 }

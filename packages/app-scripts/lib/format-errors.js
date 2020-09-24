@@ -1,5 +1,6 @@
 const chalk = require('chalk'),
-    RequestShortener = require('webpack/lib/RequestShortener');
+    RequestShortener = require('webpack/lib/RequestShortener'),
+    stripAnsi = require('./utils/strip-ansi');
 
 const requestShortener = new RequestShortener(process.cwd());
 
@@ -168,6 +169,60 @@ function formatModuleNotFoundErrors(errors) {
 }
 
 /**
+ * Summarize total error and warning counts
+ * @param {Object[]} results - array of lint results for a single file
+ * @returns {string} - lint result summary statement
+ */
+function lintResultSummary(results) {
+    const fileCount = results.length,
+        // calculate warning & error counts
+        problems = results.flatMap(({ messages }) => messages.map(({ severity }) => severity)),
+        errorCount = problems.filter((s) => s === 2).length,
+        warningCount = problems.length - errorCount,
+        // create errors & warnings summary statement
+        summary = [
+            ...errorCount ? [`${errorCount} error${errorCount > 1 ? 's' : ''}`] : [],
+            ...warningCount ? [`${warningCount} warning${warningCount > 1 ? 's' : ''}`] : [],
+        ].join(' and ');
+    // return statement
+    return `found ${summary} in ${fileCount} file${fileCount > 1 ? 's' : ''}`;
+}
+
+/**
+ * Transform lint result data into pretty cli tables
+ * @param {Object[]} results - array of lint results for a single file
+ * @returns {string[]} - formatted results tables
+ */
+function lintResultTables(results, { lineWidth, colWidth, msgWidth }) {
+    // loop through each file result
+    return results
+        .map(({ filePath, messages }) => [
+            chalk.bold.underline(filePath),
+            ...messages.map(({
+                line,
+                column,
+                message,
+                ruleId,
+                severity,
+            }) => {
+                const lPadding = ' '.repeat(lineWidth - line.length),
+                    cPadding = ' '.repeat(colWidth - column.length),
+                    mPadding = ' '.repeat(msgWidth - stripAnsi(message).length);
+                return [
+                    // error or warning symbol
+                    severity === 2 ? chalk.red(' ✖') : chalk.yellow(' ⚠'),
+                    // location
+                    chalk`${lPadding}{dim ${line}{gray :}${column}}${cPadding}`,
+                    // message
+                    message + mPadding,
+                    // rule id
+                    chalk.dim(ruleId),
+                ].join('  ');
+            }),
+        ].join('\n'));
+}
+
+/**
  * Format linting errors
  * @param {Object[]} eslintErrors - eslint error data objects
  * @param {Object[]} stylelintErrors - stylelint error data objects
@@ -175,18 +230,28 @@ function formatModuleNotFoundErrors(errors) {
  */
 function formatLintErrors(eslintErrors, stylelintErrors) {
     if (eslintErrors.length + stylelintErrors.length === 0) return [];
+    const eslintData = eslintErrors.flatMap(({ originalError: { message } }) => JSON.parse(message.trim())),
+        stylelintData = stylelintErrors.flatMap(({ message }) => JSON.parse(message.trim())),
+        // find max line, column, and message string width for all linting errors
+        [lineWidth, colWidth, msgWidth] = [...eslintData, ...stylelintData]
+            .flatMap(({ messages }) => messages)
+            .reduce(([l, c, m], { line, column, message }) => [
+                Math.max(l, line.length),
+                Math.max(c, column.length),
+                Math.max(m, stripAnsi(message).length),
+            ], [0, 0, 0]);
 
     return [
         ...eslintErrors.length ? [
             [
-                `ESLint found problems in ${eslintErrors.length} file${eslintErrors.length > 1 ? 's' : ''}`,
-                ...eslintErrors.map(({ originalError: { message } }) => message.trim()),
+                `ESLint ${lintResultSummary(eslintData)}`,
+                ...lintResultTables(eslintData, { lineWidth, colWidth, msgWidth }),
             ].join('\n\n'),
         ] : [],
         ...stylelintErrors.length ? [
             [
-                `Stylelint found problems in ${stylelintErrors.length} file${stylelintErrors.length > 1 ? 's' : ''}`,
-                ...stylelintErrors.map(({ message }) => message.trim()),
+                `Stylelint ${lintResultSummary(stylelintData)}`,
+                ...lintResultTables(stylelintData, { lineWidth, colWidth, msgWidth }),
             ].join('\n\n'),
         ] : [],
     ];

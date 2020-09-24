@@ -2,7 +2,8 @@ const path = require('path'),
     fs = require('fs-extra'),
     chalk = require('chalk'),
     webpack = require('webpack'),
-    configFactory = require('../config/webpack.config');
+    configFactory = require('../config/webpack.config'),
+    errorFormatter = require('../lib/format-errors');
 
 const [, , mode = 'production'] = process.argv;
 
@@ -49,16 +50,16 @@ compiler.run((err, stats) => {
     }
     // check for errors
     if (stats.hasErrors()) {
-        const { errors } = stats.toJson({ all: false, errors: true });
+        console.log(chalk.bold.red('Failed to compile.'));
         // log errors and exit
-        console.log(chalk`{bold.red Failed to compile.}\n\n${errors.join('\n\n')}\n`);
+        console.log(errorFormatter.logErrors(stats));
         process.exit(1);
     }
     // check for warnings
     if (stats.hasWarnings()) {
-        const { warnings } = stats.toJson({ all: false, warnings: true });
+        console.log(chalk.bold.yellow('Compiled with warnings.'));
         // log warnings
-        console.log(chalk`{bold.yellow Compiled with warnings:}\n\n$${warnings.join('\n\n')}\n`);
+        console.log(errorFormatter.logWarnings(stats));
     } else {
         console.log(chalk.bold.green('Compiled successfully.'));
     }

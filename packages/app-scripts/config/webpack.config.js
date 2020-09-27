@@ -1,5 +1,6 @@
 const path = require('path'),
     fs = require('fs'),
+    webpack = require('webpack'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
     StylelintPlugin = require('stylelint-webpack-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
@@ -14,6 +15,10 @@ module.exports = (mode) => ({
         ? 'cheap-module-source-map'
         : 'source-map',
     entry: [
+        ...(mode === 'development') ? [
+            require.resolve('../client/entry'),
+            require.resolve('webpack/hot/dev-server'),
+        ] : [],
         path.resolve(appPath, 'src/index'),
     ],
     output: {
@@ -224,6 +229,10 @@ module.exports = (mode) => ({
             // eslint-disable-next-line global-require
             formatter: require('../lib/stylelint-formatter'),
         }),
+        // development plugins
+        ...(mode === 'development') ? [
+            new webpack.HotModuleReplacementPlugin(),
+        ] : [],
         // production plugins
         ...(mode === 'production') ? [
             new MiniCssExtractPlugin({

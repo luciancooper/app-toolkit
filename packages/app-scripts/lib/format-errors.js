@@ -367,27 +367,27 @@ function processErrors(errors) {
 }
 
 /**
- * Find and format all warnings in a webpack stats object
+ * Extract and format all warnings from a webpack stats object
  * @param {Object} stats - webpack stats object
- * @returns {string} - readable warnings output
+ * @returns {string[]} - readable warnings output chunks
  */
-exports.logWarnings = (stats) => {
+exports.extractWarnings = (stats) => {
     const items = extractFromCompilation(stats.compilation, 'warnings'),
         extracted = items.map((e) => extractError(e)),
         processed = processErrors(extracted),
         badge = chalk.yellow.inverse(' WARNING ');
-    return processed.map((chunk) => `\n${badge} ${chunk}\n`).join('');
+    return processed.map((chunk) => `\n${badge} ${chunk}\n`);
 };
 
 /**
- * Find and format all errors in a webpack stats object
+ * Extract and format all errors from a webpack stats object
  * @param {Object} stats - webpack stats object
- * @returns {string} - readable errors output
+ * @returns {string[]} - readable errors output chunks
  */
-exports.logErrors = (stats) => {
+exports.extractErrors = (stats) => {
     const items = extractFromCompilation(stats.compilation, 'errors'),
         extracted = items.map((e) => extractError(e)),
         processed = processErrors(extracted),
         badge = chalk.red.inverse(' ERROR ');
-    return processed.map((chunk) => `\n${badge} ${chunk}\n`).join('');
+    return processed.map((chunk) => `\n${badge} ${chunk}\n`);
 };

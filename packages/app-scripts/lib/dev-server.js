@@ -8,11 +8,13 @@ const http = require('http'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
+    clearConsole = require('./utils/clear-console'),
     prependEntry = require('./utils/prepend-entry'),
     errorFormatter = require('./format-errors');
 
 module.exports = class {
     constructor(compiler, {
+        interactive = process.stdout.isTTY,
         path = '/__dev-server',
         heartbeat = 10 * 1000,
     } = {}) {
@@ -67,6 +69,8 @@ module.exports = class {
         compiler.hooks.invalid.tap('invalid', () => {
             // check if server has been closed
             if (this.closed) return;
+            // clear console if in iteractive mode
+            if (interactive) clearConsole();
             // clear latest stats
             this.latestStats = null;
             // write message to console
@@ -79,6 +83,8 @@ module.exports = class {
         compiler.hooks.done.tap('done', (stats) => {
             // check if server has been closed
             if (this.closed) return;
+            // clear console if in iteractive mode
+            if (interactive) clearConsole();
             // extract relevant data from stats
             const extracted = this.extractStats(stats);
             // Keep hold of latest stats so they can be propagated to new clients

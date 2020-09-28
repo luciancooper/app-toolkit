@@ -6,7 +6,9 @@
 const http = require('http'),
     express = require('express'),
     chalk = require('chalk'),
+    webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
+    prependEntry = require('./utils/prepend-entry'),
     errorFormatter = require('./format-errors');
 
 module.exports = class {
@@ -17,6 +19,24 @@ module.exports = class {
         this.compiler = compiler;
 
         const { options: config } = compiler;
+
+        // add client entries
+        config.entry = prependEntry(config.entry, [
+            require.resolve('../client/entry'),
+            require.resolve('webpack/hot/dev-server'),
+        ]);
+        compiler.hooks.entryOption.call(config.context, config.entry);
+
+        // inject HotModuleReplacementPlugin into the compiler config if it doesnt already exist
+        config.plugins = config.plugins || [];
+        if (!config.plugins.some((plugin) => plugin.constructor.name === 'HotModuleReplacementPlugin')) {
+            // instantiate the HotModuleReplacementPlugin
+            const plugin = new webpack.HotModuleReplacementPlugin();
+            // add plugin to the config
+            config.plugins.push();
+            // apply the plugin to the compiler
+            plugin.apply(compiler);
+        }
 
         // setup express app
         this.app = express();

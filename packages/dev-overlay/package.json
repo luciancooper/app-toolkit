@@ -1,0 +1,28 @@
+{
+  "name": "@lcooper/dev-overlay",
+  "version": "0.0.0",
+  "description": "A development overlay for displaying errors and warnings in the browser",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luciancooper/app-toolkit.git",
+    "directory": "packages/dev-overlay"
+  },
+  "keywords": [
+    "overlay",
+    "syntax",
+    "error",
+    "warning"
+  ],
+  "author": "Lucian Cooper <cooperlucian@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/luciancooper/app-toolkit/issues"
+  },
+  "homepage": "https://github.com/luciancooper/app-toolkit/packages/dev-overlay#readme"
+}

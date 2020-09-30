@@ -7,6 +7,7 @@
  */
 
 const hotEmitter = require('webpack/hot/emitter'),
+    overlay = require('@lcooper/dev-overlay'),
     stripAnsi = require('../lib/utils/strip-ansi');
 
 const path = '/__dev-server',
@@ -50,14 +51,20 @@ function processMessage({ action, ...data }) {
     if (data.errors && data.errors.length > 0) {
         // report errors and exit, do not apply update
         logProblems('errors', data);
+        // report errors to overlay
+        overlay.reportBuildErrors(data);
         return;
     }
     // check for warnings
     if (data.warnings && data.warnings.length > 0) {
         logProblems('warnings', data);
+        // report warnings to overlay
+        overlay.reportBuildWarnings(data);
     } else {
         // clear cached problems
         previousProblems = null;
+        // dismiss overlay
+        overlay.dismiss();
     }
     if (isUnloading) return;
     hotEmitter.emit('webpackHotUpdate', data.hash);

@@ -2,8 +2,10 @@
   "name": "@lcooper/dev-overlay",
   "version": "0.0.0",
   "description": "A development overlay for displaying errors and warnings in the browser",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "node tasks/build.js",
+    "watch": "node tasks/build.js --watch"
   },
   "publishConfig": {
     "access": "public"

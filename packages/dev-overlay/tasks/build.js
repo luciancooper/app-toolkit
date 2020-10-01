@@ -71,16 +71,17 @@ async function build() {
     }
 
     // clean up output directory
-    console.log(chalk`🧹  {bold cleaning up output directory...}`);
+    console.log('🧹  cleaning up output directory...');
     // remove emitted overlay files
     emittedFiles.forEach((file) => {
         try {
             fs.unlinkSync(path.resolve(distPath, file));
-            console.log(chalk`{bold.magenta removed} {cyan ${file}}`);
+            console.log(chalk`{cyan ${file}} {magenta removed}`);
         } catch (e) {
-            console.log(chalk`{bold.red failed to remove} {cyan ${file}}`);
+            console.log(chalk`{cyan ${file}} {bold.red failed to remove}`);
         }
     });
+    console.log(chalk`🎉  {bold build complete}`);
 }
 
 function watch() {
@@ -90,15 +91,15 @@ function watch() {
 
     watcher
         .on('change', (file) => {
-            console.log(chalk`{bold.green added} file {cyan ${file}}, rebuilding...`);
+            console.log(chalk`\n{bold.yellow changed} file {cyan ${file}}, rebuilding...\n`);
             build();
         })
         .on('add', (file) => {
-            console.log(chalk`{bold.yellow changed} file {cyan ${file}}, rebuilding...`);
+            console.log(chalk`\n{bold.green added} file {cyan ${file}}, rebuilding...\n`);
             build();
         })
         .on('unlink', (file) => {
-            console.log(chalk`{bold.red removed} file {cyan ${file}}, rebuilding...`);
+            console.log(chalk`\n{bold.red removed} file {cyan ${file}}, rebuilding...\n`);
             build();
         })
         .once('ready', () => {

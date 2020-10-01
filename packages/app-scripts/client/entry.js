@@ -7,35 +7,19 @@
  */
 
 const hotEmitter = require('webpack/hot/emitter'),
-    overlay = require('@lcooper/dev-overlay'),
-    stripAnsi = require('../lib/utils/strip-ansi');
+    overlay = require('@lcooper/dev-overlay');
 
 const path = '/__dev-server',
     timeout = 20 * 1000;
 
-let previousProblems = null,
-    isUnloading = false;
+let isUnloading = false;
 
 function logProblems(type, { name, [type]: problems }) {
-    const newProblems = problems.map((msg) => stripAnsi(msg)).join('\n');
-    // if problems have not changed, do not relog
-    if (previousProblems === newProblems) return;
-    // set new problems
-    previousProblems = newProblems;
     // console log the problems
-    const { [type]: style } = { errors: 'color:#ff0000', warnings: 'color:#999933' },
-        title = `[dev-server] bundle ${name ? `'${name}' ` : ''} has ${problems.length} ${type}`;
-    if (console.group && console.groupEnd) {
-        console.group(`%c${title}`, style);
-        console.log(`%c${newProblems}`, style);
-        console.groupEnd();
-    } else {
-        console.log(
-            `%c${title}\n\t%c${newProblems.replace(/\n/g, '\n\t')}`,
-            `${style}font-weight:bold;`,
-            `${style}font-weight:normal;`,
-        );
-    }
+    console.log(
+        `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${problems.length} ${problems.length > 1 ? type : type.slice(0, -1)}`,
+        `color:${type === 'warnings' ? '#999933' : '#ff0000'}`,
+    );
 }
 
 function processMessage({ action, ...data }) {
@@ -61,8 +45,6 @@ function processMessage({ action, ...data }) {
         // report warnings to overlay
         overlay.reportBuildWarnings(data);
     } else {
-        // clear cached problems
-        previousProblems = null;
         // dismiss overlay
         overlay.dismiss();
     }

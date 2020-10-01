@@ -52,14 +52,16 @@ compiler.run((err, stats) => {
     if (stats.hasErrors()) {
         console.log(chalk.bold.red('Failed to compile.'));
         // log errors and exit
-        console.log(errorFormatter.extractErrors(stats).join(''));
+        const errors = errorFormatter.extract(stats, 'errors');
+        console.log(errorFormatter.format(errors, 'error').join(''));
         process.exit(1);
     }
     // check for warnings
     if (stats.hasWarnings()) {
         console.log(chalk.bold.yellow('Compiled with warnings.'));
         // log warnings
-        console.log(errorFormatter.extractWarnings(stats).join(''));
+        const warnings = errorFormatter.extract(stats, 'warnings');
+        console.log(errorFormatter.format(warnings, 'warning').join(''));
     } else {
         console.log(chalk.bold.green('Compiled successfully.'));
     }

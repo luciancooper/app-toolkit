@@ -92,10 +92,10 @@ module.exports = class {
             // log errors / warnings / successful compile
             if (extracted.errors.length) {
                 console.log(chalk.bold.red('Failed to compile.'));
-                console.log(extracted.errors.join(''));
+                console.log(errorFormatter.format(extracted.errors, 'error').join(''));
             } else if (extracted.warnings.length) {
                 console.log(chalk.bold.yellow('Compiled with warnings.'));
-                console.log(extracted.warnings.join(''));
+                console.log(errorFormatter.format(extracted.warnings, 'warning').join(''));
             } else {
                 console.log(chalk.bold.green('Compiled successfully!'));
             }
@@ -170,9 +170,9 @@ module.exports = class {
         let errors = [],
             warnings = [];
         if (stats.hasErrors()) {
-            errors = errorFormatter.extractErrors(stats);
+            errors = errorFormatter.extract(stats, 'errors');
         } else if (stats.hasWarnings()) {
-            warnings = errorFormatter.extractWarnings(stats);
+            warnings = errorFormatter.extract(stats, 'warnings');
         }
         return {
             name,

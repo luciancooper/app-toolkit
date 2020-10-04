@@ -36,6 +36,13 @@ module.exports = {
                             presets: [
                                 '@babel/preset-env',
                             ],
+                            plugins: [
+                                ['@babel/plugin-transform-runtime', {
+                                    absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
+                                    // eslint-disable-next-line global-require
+                                    version: require('@babel/runtime/package.json').version,
+                                }],
+                            ],
                         },
                     },
                 ],

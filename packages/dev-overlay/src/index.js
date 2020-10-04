@@ -1,17 +1,22 @@
 // eslint-disable-next-line import/no-unresolved
 import overlayScript from 'overlay';
+import parseStackFrames from './utils/parse-frames';
 
 let iframe = null,
     isLoadingIframe = false,
     isIframeReady = false,
-    currentBuildData = null;
+    currentBuildData = null,
+    runtimeErrors = [];
 
 function updateIframeContent() {
     if (!iframe) {
         throw new Error('Iframe has not been created yet.');
     }
     // pass error data to the iframe hook. Returns boolean
-    const rendered = iframe.contentWindow.updateContent(currentBuildData);
+    const rendered = iframe.contentWindow.updateContent(
+        currentBuildData || {},
+        runtimeErrors,
+    );
     if (!rendered) {
         // no errors exist - destroy the overlay
         document.body.removeChild(iframe);
@@ -64,17 +69,68 @@ window.__overlayReady = () => {
     updateIframeContent();
 };
 
-export function reportBuildErrors(data) {
+export function setBuildData(data) {
     currentBuildData = data;
     update();
 }
 
-export function reportBuildWarnings(data) {
-    currentBuildData = data;
+function handleRuntimeError(error, isUnhandledRejection = false) {
+    // parse stack frames
+    const stackFrames = parseStackFrames(error);
+    if (stackFrames == null) {
+        console.log('Could not get the stack frames of error:', error);
+        return;
+    }
+    // check if error is a duplicate
+    if (runtimeErrors.some(({ error: e }) => e === error)) return;
+    // add error data to runtimeErrors array
+    runtimeErrors = [
+        ...runtimeErrors,
+        {
+            error,
+            isUnhandledRejection,
+            stackFrames,
+        },
+    ];
+    // queue overlay update
     update();
 }
 
-export function dismiss() {
-    currentBuildData = null;
-    update();
+let unregisterRuntimeListeners = null;
+
+export function startReportingRuntimeErrors() {
+    if (unregisterRuntimeListeners !== null) {
+        throw new Error('Already listening for runtime errors');
+    }
+
+    // add error event handler
+    const errorHandler = (event) => {
+        if (!event || !event.error) return;
+        const error = (event.error instanceof Error) ? event.error : new Error(event.error);
+        handleRuntimeError(error, false);
+    };
+    window.addEventListener('error', errorHandler);
+
+    // add unhandled rejection event handler
+    const rejectionHandler = (event) => {
+        const error = (event && event.reason)
+            ? (event.reason instanceof Error) ? event.reason : new Error(event.reason)
+            : new Error('Unknown');
+        handleRuntimeError(error, true);
+    };
+    window.addEventListener('unhandledrejection', rejectionHandler);
+
+    // create unregister listeners function
+    unregisterRuntimeListeners = () => {
+        window.removeEventListener('unhandledrejection', rejectionHandler);
+        window.removeEventListener('error', errorHandler);
+    };
+}
+
+export function stopReportingRuntimeErrors() {
+    if (unregisterRuntimeListeners === null) {
+        throw new Error('Not currently listening for runtime errors');
+    }
+    unregisterRuntimeListeners();
+    unregisterRuntimeListeners = null;
 }

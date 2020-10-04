@@ -14,14 +14,6 @@ const path = '/__dev-server',
 
 let isUnloading = false;
 
-function logProblems(type, { name, [type]: problems }) {
-    // console log the problems
-    console.log(
-        `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${problems.length} ${problems.length > 1 ? type : type.slice(0, -1)}`,
-        `color:${type === 'warnings' ? '#999933' : '#ff0000'}`,
-    );
-}
-
 function processMessage({ action, ...data }) {
     // action is either 'building', 'built', or 'sync'
     if (action === 'building') {
@@ -31,22 +23,26 @@ function processMessage({ action, ...data }) {
     if (action === 'built') {
         console.log(`[dev-server] bundle ${data.name ? `'${data.name}' ` : ''}rebuilt in ${data.time}ms`);
     }
+    // pass data to overlay
+    overlay.setBuildData(data);
+
+    const { name, errors, warnings } = data;
     // check for errors
-    if (data.errors && data.errors.length > 0) {
+    if (errors && errors.length > 0) {
         // report errors and exit, do not apply update
-        logProblems('errors', data);
-        // report errors to overlay
-        overlay.reportBuildErrors(data);
+        console.error(
+            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has error${errors.length} ${errors.length > 1 ? 's' : ''}`,
+            'color:#ff0000',
+        );
         return;
     }
     // check for warnings
     if (data.warnings && data.warnings.length > 0) {
-        logProblems('warnings', data);
-        // report warnings to overlay
-        overlay.reportBuildWarnings(data);
-    } else {
-        // dismiss overlay
-        overlay.dismiss();
+        // log warnings to console
+        console.warn(
+            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`,
+            'color:#999933',
+        );
     }
     if (isUnloading) return;
     hotEmitter.emit('webpackHotUpdate', data.hash);
@@ -106,4 +102,6 @@ if (typeof window === 'undefined') {
     console.warn('app-scripts dev-server client requires EventSource');
 } else {
     connect();
+    // tell overlay to register runtime error listeners
+    overlay.startReportingRuntimeErrors();
 }

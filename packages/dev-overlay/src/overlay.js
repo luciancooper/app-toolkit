@@ -1,20 +1,39 @@
 let iframeRoot = null;
 
 // hook that overlay can call to pass build info to the iframe
-window.updateContent = ({ warnings, errors }) => {
-    // console.log(`overlay updating content `, )
-    const errorCount = (errors && errors.length) || 0,
-        warningCount = (warnings && warnings.length) || 0;
-    if (errorCount + warningCount === 0) {
-        // clear the iframe root
-        iframeRoot.innerHTML = '';
+window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
+    // clear the iframe root
+    iframeRoot.innerHTML = '';
+    // check if there is nothing to display
+    if (!errors.length && !warnings.length && !runtimeErrors.length) {
         return false;
     }
-    const summary = [
-        ...errorCount ? [`${errorCount} error${errorCount > 1 ? 's' : ''}`] : [],
-        ...warningCount ? [`${warningCount} warning${warningCount > 1 ? 's' : ''}`] : [],
-    ].join(' and ');
-    iframeRoot.innerHTML = `compiled with ${summary}`;
+    // check for errors
+    if (errors.length) {
+        iframeRoot.innerHTML = `Failed to compile: ${errors.length} build error${errors.length > 1 ? 's' : ''}`;
+        return true;
+    }
+    let html = '';
+    // check for warnings
+    if (warnings.length) {
+        html = `Compiled with ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`;
+    }
+    // render runtime errors
+    if (runtimeErrors.length) {
+        html += runtimeErrors
+            .flatMap(({ error, stackFrames }) => [
+                `<pre>${error.toString()}</pre>`,
+                ...stackFrames.map(({
+                    fn,
+                    file,
+                    line,
+                    column,
+                }) => `<div>${fn || '(anonymous function)'} ${file} ${line}:${column}</div>`),
+            ])
+            .join('\n');
+    }
+    // set inner html
+    iframeRoot.innerHTML = html;
     return true;
 };
 

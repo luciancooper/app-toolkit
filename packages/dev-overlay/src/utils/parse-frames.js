@@ -3,8 +3,10 @@
  * @param {Error} error - error object
  * @returns {Object[]} - array of stack frame objects
  */
-export default function parseStackFrames({ stack }) {
-    if (!stack || typeof stack !== 'string') return null;
+export default function parseFrames({ stack }) {
+    if (!stack || typeof stack !== 'string') {
+        throw new Error('error stack is not a string');
+    }
     return stack
         .split('\n')
         .filter((l) => (

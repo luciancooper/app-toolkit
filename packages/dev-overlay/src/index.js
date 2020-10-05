@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-unresolved
 import overlayScript from 'overlay';
-import parseStackFrames from './utils/parse-frames';
+import parseFrames from './utils/parse-frames';
+import enhanceFrames from './utils/enhance-frames';
 
 let iframe = null,
     isLoadingIframe = false,
@@ -74,15 +75,24 @@ export function setBuildData(data) {
     update();
 }
 
-function handleRuntimeError(error, isUnhandledRejection = false) {
-    // parse stack frames
-    const stackFrames = parseStackFrames(error);
-    if (stackFrames == null) {
-        console.log('Could not get the stack frames of error:', error);
-        return;
-    }
+async function handleRuntimeError(error, isUnhandledRejection = false) {
     // check if error is a duplicate
     if (runtimeErrors.some(({ error: e }) => e === error)) return;
+
+    let stackFrames;
+    // parse stack frames
+    try {
+        stackFrames = parseFrames(error);
+    } catch (e) {
+        console.log(`Could not get stack frames: ${e.mesage || e}`);
+        return;
+    }
+    // enhance stack frames
+    try {
+        stackFrames = await enhanceFrames(stackFrames);
+    } catch (e) {
+        console.log(`Could not enhance stack frames: ${e.message || e}`);
+    }
     // add error data to runtimeErrors array
     runtimeErrors = [
         ...runtimeErrors,

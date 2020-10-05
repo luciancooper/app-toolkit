@@ -28,7 +28,13 @@ window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
                     file,
                     line,
                     column,
-                }) => `<div>${fn || '(anonymous function)'} ${file} ${line}:${column}</div>`),
+                    src,
+                }) => {
+                    const loc = src
+                        ? `${src.file} ${src.line}:${src.column}`
+                        : `${file} ${line}:${column}`;
+                    return `<div>${fn || '(anonymous function)'} ${loc}</div>`;
+                }),
             ])
             .join('\n');
     }

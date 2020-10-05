@@ -37,6 +37,7 @@
     "chokidar": "^3.4.2",
     "fs-extra": "^9.0.1",
     "raw-loader": "^4.0.1",
+    "source-map": "^0.7.3",
     "terser-webpack-plugin": "^4.2.2",
     "webpack": "^4.44.2"
   }

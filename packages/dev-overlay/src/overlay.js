@@ -1,5 +1,18 @@
 let iframeRoot = null;
 
+function createStackFrame(fn, {
+    file,
+    line,
+    column,
+    context,
+}) {
+    let html = `<div>${fn || '(anonymous function)'} ${file} ${line}:${column}</div>`;
+    if (context && context.length) {
+        html += `<pre>${context.map(([i, l]) => `<var>[${i}]</var> ${l}`).join('\n')}</pre>`;
+    }
+    return html;
+}
+
 // hook that overlay can call to pass build info to the iframe
 window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
     // clear the iframe root
@@ -23,18 +36,7 @@ window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
         html += runtimeErrors
             .flatMap(({ error, stackFrames }) => [
                 `<pre>${error.toString()}</pre>`,
-                ...stackFrames.map(({
-                    fn,
-                    file,
-                    line,
-                    column,
-                    src,
-                }) => {
-                    const loc = src
-                        ? `${src.file} ${src.line}:${src.column}`
-                        : `${file} ${line}:${column}`;
-                    return `<div>${fn || '(anonymous function)'} ${loc}</div>`;
-                }),
+                ...stackFrames.map(({ fn, src, ...loc }) => createStackFrame(fn, src || loc)),
             ])
             .join('\n');
     }
@@ -50,8 +52,9 @@ iframeRoot = document.createElement('div');
 iframeRoot.style.width = '100%';
 iframeRoot.style.height = '100%';
 iframeRoot.style.boxSizing = 'border-box';
-iframeRoot.style.textAlign = 'center';
+iframeRoot.style.textAlign = 'left';
 iframeRoot.style.backgroundColor = '#353535';
+iframeRoot.style.color = '#ffffff';
 // mount root element
 document.body.appendChild(iframeRoot);
 // trigger entry client ready hook

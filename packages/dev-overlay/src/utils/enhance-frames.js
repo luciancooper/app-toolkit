@@ -28,11 +28,27 @@ async function getSourceMap(fileUri, fileContents) {
 }
 
 /**
+ * Extract context lines from a source file str given a target line number
+ * @param {string} src - The source code
+ * @param {number} line - The line number to provide context around
+ * @param {number} count - The number of lines of context
+ * @returns {Array[]}
+ */
+function getContextLines(src, line, count) {
+    const start = Math.max(0, line - 1 - count);
+    return src
+        .split('\n')
+        .slice(start, line + count)
+        .map((l, i) => [i + start + 1, l, i + start === line - 1]);
+}
+
+/**
  * Adds original positions to an array of stack frames where source maps are available
  * @param {Object[]} frames - An array of stack frames
+ * @param {number} [contextLines=3] - The number of lines of context to provide
  * @returns {Object[]} - enhanced stack frames
  */
-export default async function enhanceFrames(frames) {
+export default async function enhanceFrames(frames, contextLines = 3) {
     // create shallow copy of frames array
     const enhanced = frames.slice(),
         // create array of unique src file paths
@@ -62,7 +78,9 @@ export default async function enhanceFrames(frames) {
             const { file, line, column } = frame;
             if (file !== filePath || line == null) return;
             // get the original code position
-            const { line: l, column: c, source } = srcMap.originalPositionFor({ line, column });
+            const { line: l, column: c, source } = srcMap.originalPositionFor({ line, column }),
+                // get the original source content
+                sourceContent = source && srcMap.sourceContentFor(source);
             // enhance the frame
             enhanced[i] = {
                 ...frame,
@@ -70,6 +88,7 @@ export default async function enhanceFrames(frames) {
                     file: source,
                     line: l,
                     column: c,
+                    context: sourceContent ? getContextLines(sourceContent, l, contextLines) : [],
                 },
             };
         });

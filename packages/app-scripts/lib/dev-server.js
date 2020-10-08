@@ -48,9 +48,7 @@ module.exports = class {
         // setup & add dev middleware
         this.middleware = webpackDevMiddleware(compiler, {
             publicPath: config.output.publicPath,
-            stats: 'none',
-            quiet: true,
-            noInfo: true,
+            logLevel: 'silent',
         });
         this.app.use(this.middleware);
 

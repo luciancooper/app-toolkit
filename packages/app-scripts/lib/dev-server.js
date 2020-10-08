@@ -8,6 +8,7 @@ const http = require('http'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
+    openBrowser = require('better-opn'),
     clearConsole = require('./utils/clear-console'),
     prependEntry = require('./utils/prepend-entry'),
     errorFormatter = require('./format-errors');
@@ -146,6 +147,10 @@ module.exports = class {
 
         this.server.on('error', (err) => {
             console.log(err);
+            // shut down and exit
+            this.close(() => {
+                process.exit(1);
+            });
         });
 
         // create array to store sockets
@@ -194,8 +199,11 @@ module.exports = class {
         });
     }
 
-    listen(port, cb) {
-        return this.server.listen(port, cb);
+    listen(port) {
+        this.server.listen(port, () => {
+            // open app in browser
+            openBrowser(`http://localhost:${port}`);
+        });
     }
 
     close(cb) {

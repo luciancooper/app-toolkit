@@ -32,16 +32,13 @@ try {
 const devServer = new DevServer(compiler);
 
 // launch the dev server
-devServer.listen(port, (err) => {
-    if (err) {
-        console.log(err);
-    }
-});
+devServer.listen(port);
 
 // shutdown gracefully on SIGINT & SIGTERM signals
 ['SIGINT', 'SIGTERM'].forEach((signal) => {
     process.on(signal, () => {
-        devServer.close();
-        process.exit();
+        devServer.close(() => {
+            process.exit(1);
+        });
     });
 });

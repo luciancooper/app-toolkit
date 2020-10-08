@@ -9,6 +9,7 @@ const http = require('http'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
     openBrowser = require('better-opn'),
+    choosePort = require('./utils/choose-port'),
     clearConsole = require('./utils/clear-console'),
     prependEntry = require('./utils/prepend-entry'),
     errorFormatter = require('./format-errors');
@@ -199,10 +200,11 @@ module.exports = class {
         });
     }
 
-    listen(port) {
-        this.server.listen(port, () => {
+    async listen(port) {
+        const openPort = await choosePort(port);
+        this.server.listen(openPort, () => {
             // open app in browser
-            openBrowser(`http://localhost:${port}`);
+            openBrowser(`http://localhost:${openPort}`);
         });
     }
 

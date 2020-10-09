@@ -6,7 +6,8 @@ const path = require('path'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
-const appPath = fs.realpathSync(process.cwd());
+const appPath = fs.realpathSync(process.cwd()),
+    appSrc = path.resolve(appPath, './src');
 
 module.exports = (mode) => ({
     mode,
@@ -55,12 +56,13 @@ module.exports = (mode) => ({
             // eslint-loader
             {
                 test: /\.(?:js|mjs|jsx)$/,
-                exclude: /node_modules/,
+                include: appSrc,
                 enforce: 'pre',
                 use: [
                     {
                         loader: require.resolve('eslint-loader'),
                         options: {
+                            cwd: appPath,
                             eslintPath: require.resolve('eslint'),
                             formatter: require.resolve('../lib/eslint-formatter'),
                             cache: true,
@@ -84,10 +86,10 @@ module.exports = (mode) => ({
                             outputPath: 'assets/static',
                         },
                     },
-                    // process js
+                    // process source js
                     {
                         test: /\.(?:js|mjs|jsx)$/,
-                        exclude: /node_modules/,
+                        include: appSrc,
                         loader: require.resolve('babel-loader'),
                         options: {
                             babelrc: false,
@@ -96,8 +98,45 @@ module.exports = (mode) => ({
                                 require.resolve('@babel/preset-env'),
                                 require.resolve('@babel/preset-react'),
                             ],
+                            plugins: [
+                                [
+                                    require.resolve('@babel/plugin-transform-runtime'),
+                                    {
+                                        absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
+                                        // eslint-disable-next-line global-require
+                                        version: require('@babel/runtime/package.json').version,
+                                    },
+                                ],
+                            ],
                             cacheDirectory: true,
                             compact: (mode === 'production'),
+                        },
+                    },
+                    // process external js
+                    {
+                        test: /\.(?:js|mjs)$/,
+                        exclude: /(@babel(?:\/|\\{1,2})runtime)/,
+                        loader: require.resolve('babel-loader'),
+                        options: {
+                            babelrc: false,
+                            configFile: false,
+                            sourceType: 'unambiguous',
+                            presets: [
+                                require.resolve('@babel/preset-env'),
+                                require.resolve('@babel/preset-react'),
+                            ],
+                            plugins: [
+                                [
+                                    require.resolve('@babel/plugin-transform-runtime'),
+                                    {
+                                        absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
+                                        // eslint-disable-next-line global-require
+                                        version: require('@babel/runtime/package.json').version,
+                                    },
+                                ],
+                            ],
+                            cacheDirectory: true,
+                            compact: false,
                         },
                     },
                     // process css

@@ -1,3 +1,5 @@
+import './overlay.scss';
+
 let iframeRoot = null;
 
 function createStackFrame(fn, {
@@ -49,12 +51,7 @@ document.body.style.margin = '0';
 document.body.style.maxWidth = '100vw';
 // create overlay root element
 iframeRoot = document.createElement('div');
-iframeRoot.style.width = '100%';
-iframeRoot.style.height = '100%';
-iframeRoot.style.boxSizing = 'border-box';
-iframeRoot.style.textAlign = 'left';
-iframeRoot.style.backgroundColor = '#353535';
-iframeRoot.style.color = '#ffffff';
+iframeRoot.classList.add('overlay-root');
 // mount root element
 document.body.appendChild(iframeRoot);
 // trigger entry client ready hook

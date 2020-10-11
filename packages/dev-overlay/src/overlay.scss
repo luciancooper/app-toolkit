@@ -1,0 +1,9 @@
+@import '~@lcooper/sass-utils';
+
+.overlay-root {
+    @include size(100%);
+    box-sizing: border-box;
+    padding: 1rem;
+    background-color: hsl(0, 0%, 21%);
+    color: hsl(0, 0%, 100%);
+}

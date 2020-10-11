@@ -1,5 +1,6 @@
-// eslint-disable-next-line import/no-unresolved
-import overlayScript from 'overlay';
+/* eslint import/no-unresolved: [2, { ignore: ['overlay-(?:js|css)$'] }] */
+import overlayScript from 'overlay-js';
+import overlayStyle from 'overlay-css';
 import parseFrames from './utils/parse-frames';
 import enhanceFrames from './utils/enhance-frames';
 
@@ -50,11 +51,20 @@ function update() {
     loadingIframe.style.zIndex = 2147483647;
     // inject overlay script into iframe when it is ready
     loadingIframe.onload = () => {
-        const { contentDocument } = loadingIframe;
+        const contentDocument = loadingIframe.contentDocument || loadingIframe.contentWindow.document;
         if (contentDocument != null && contentDocument.body != null) {
             iframe = loadingIframe;
-            // create <script> containing overlay code
-            const script = loadingIframe.contentWindow.document.createElement('script');
+            // inject <style> containing overlay css
+            const style = contentDocument.createElement('style');
+            if (style.styleSheet) {
+                // IE8 and below.
+                style.styleSheet.cssText = overlayStyle;
+            } else {
+                style.appendChild(contentDocument.createTextNode(overlayStyle));
+            }
+            contentDocument.head.appendChild(style);
+            // inject <script> containing overlay code
+            const script = contentDocument.createElement('script');
             script.type = 'text/javascript';
             script.innerHTML = overlayScript;
             // inject the script

@@ -12,7 +12,8 @@ module.exports = {
     },
     resolve: {
         alias: {
-            overlay$: path.resolve(__dirname, './dist/overlay-bundle.js'),
+            'overlay-js$': path.resolve(__dirname, './dist/overlay.js'),
+            'overlay-css$': path.resolve(__dirname, './dist/overlay.css'),
         },
         plugins: [{
             // override requests to 'source-map/lib/read-wasm'
@@ -44,7 +45,7 @@ module.exports = {
                 oneOf: [
                     // overlay script
                     {
-                        test: /overlay-bundle\.js$/,
+                        test: /overlay\.(?:js|css)$/,
                         use: 'raw-loader',
                     },
                     // resolve wasm files

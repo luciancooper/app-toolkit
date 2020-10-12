@@ -42,6 +42,10 @@ module.exports = {
                     compact: true,
                     presets: [
                         '@babel/preset-env',
+                        ['@babel/preset-react', {
+                            runtime: 'automatic',
+                            importSource: path.resolve(__dirname, './src'),
+                        }],
                     ],
                 },
             },

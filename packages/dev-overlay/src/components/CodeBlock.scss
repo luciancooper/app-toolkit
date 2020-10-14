@@ -1,5 +1,18 @@
 @import '~@lcooper/sass-utils';
 
+$syntax-js: (
+    'number':    hsl(212, 100%, 39%),
+    'regexp':    hsl(134, 60%, 33%),
+    'string':    hsl(134, 60%, 33%),
+    'comment':   hsl(88, 100%, 31%),
+    'operator':  hsl(27, 76%, 53%),
+    'punctuator':hsl(210, 12%, 16%),
+    'keyword':   hsl(354, 66%, 54%),
+    'identifier':hsl(210, 12%, 16%),
+    'jsx_tag':   hsl(27, 76%, 53%),
+    'jsx_id':    hsl(261, 51%, 51%),
+);
+
 pre.code-block {
     --line-indent: 3em;
     margin: 0;
@@ -13,6 +26,18 @@ pre.code-block {
     background: hsl(220, 23%, 97%);
     hyphens: none;
     white-space: normal;
+
+    @each $type, $color in $syntax-js {
+        span.#{$type} {
+            color: $color;
+        }
+    }
+
+    .invalid {
+        color: #ffffff;
+        background-color: var(--red);
+        font-weight: bold;
+    }
 
     > li {
         position: relative;

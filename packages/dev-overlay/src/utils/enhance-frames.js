@@ -32,14 +32,17 @@ async function getSourceMap(fileUri, fileContents) {
  * @param {string} src - The source code
  * @param {number} line - The line number to provide context around
  * @param {number} count - The number of lines of context
- * @returns {Array[]}
+ * @returns {{ start: number, source: string }}
  */
 function getContextLines(src, line, count) {
     const start = Math.max(0, line - 1 - count);
-    return src
-        .split('\n')
-        .slice(start, line + count)
-        .map((l, i) => [i + start + 1, l, i + start === line - 1]);
+    return {
+        start: start + 1,
+        source: src
+            .split('\n')
+            .slice(start, line + count)
+            .join('\n'),
+    };
 }
 
 /**
@@ -52,7 +55,7 @@ export default async function enhanceFrames(frames, contextLines = 3) {
     // create shallow copy of frames array
     const enhanced = frames.slice(),
         // create array of unique src file paths
-        files = frames.reduce((acc, { file }) => {
+        files = frames.reduce((acc, { compiled: { file } }) => {
             if (file && !acc.includes(file)) {
                 acc.push(file);
             }
@@ -75,7 +78,7 @@ export default async function enhanceFrames(frames, contextLines = 3) {
         if (srcMap == null) return;
         // modify each frame matching the file
         enhanced.forEach((frame, i) => {
-            const { file, line, column } = frame;
+            const { compiled: { file, loc: [line, column] } } = frame;
             if (file !== filePath || line == null) return;
             // get the original code position
             const { line: l, column: c, source } = srcMap.originalPositionFor({ line, column }),
@@ -86,9 +89,8 @@ export default async function enhanceFrames(frames, contextLines = 3) {
                 ...frame,
                 src: {
                     file: source,
-                    line: l,
-                    column: c,
-                    context: sourceContent ? getContextLines(sourceContent, l, contextLines) : [],
+                    loc: [l, c],
+                    ctx: sourceContent ? getContextLines(sourceContent, l, contextLines) : undefined,
                 },
             };
         });

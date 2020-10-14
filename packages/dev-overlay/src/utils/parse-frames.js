@@ -38,9 +38,10 @@ export default function parseFrames({ stack }) {
             const { 1: file, 2: ln, 3: cn } = last.match(/\(?(.+?)(?::(\d+))?(?::(\d+))?\)?$/);
             return {
                 fn,
-                file,
-                line: ln ? Number(ln) : ln,
-                column: cn ? Number(cn) : cn,
+                compiled: {
+                    file,
+                    loc: [ln && Number(ln), cn && Number(cn)],
+                },
             };
         });
 }

@@ -1,0 +1,7 @@
+@import '~@lcooper/sass-utils';
+
+.runtime-errors {
+    @include flex(column);
+    overflow: auto;
+    min-width: 50%;
+}

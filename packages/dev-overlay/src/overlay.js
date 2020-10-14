@@ -1,25 +1,9 @@
 import './overlay.scss';
+import CompileErrorContainer from './containers/CompileErrorContainer';
+import CompileWarningContainer from './containers/CompileWarningContainer';
+import RuntimeErrorContainer from './containers/RuntimeErrorContainer';
 
 let iframeRoot = null;
-
-function createStackFrame(fn, {
-    file,
-    line,
-    column,
-    context: ctx,
-}) {
-    return (
-        <div className='stack-frame'>
-            <div>{fn || '(anonymous function)'}</div>
-            <div>{`${file} ${line}:${column}`}</div>
-            {
-                ctx && ctx.length && (
-                    <pre innerHTML={ctx.map(([i, l]) => `<var>[${i}]</var> ${l}`).join('\n')}/>
-                )
-            }
-        </div>
-    );
-}
 
 // hook that overlay can call to pass build info to the iframe
 window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
@@ -32,29 +16,20 @@ window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
     // check for errors
     if (errors.length) {
         iframeRoot.appendChild(
-            <div>{`Failed to compile: ${errors.length} build error${errors.length > 1 ? 's' : ''}`}</div>,
+            <CompileErrorContainer errors={errors}/>,
         );
         return true;
     }
     // check for warnings
     if (warnings.length) {
         iframeRoot.appendChild(
-            <div>{`Compiled with ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`}</div>,
+            <CompileWarningContainer warnings={warnings}/>,
         );
     }
     // render runtime errors
     if (runtimeErrors.length) {
         iframeRoot.appendChild(
-            <div className='runtime-errors'>
-                {
-                    runtimeErrors.map(({ error, stackFrames }) => (
-                        <div className='runtime-error'>
-                            <pre>{error.toString()}</pre>
-                            {stackFrames.map(({ fn, src, ...loc }) => createStackFrame(fn, src || loc))}
-                        </div>
-                    ))
-                }
-            </div>,
+            <RuntimeErrorContainer errors={runtimeErrors}/>,
         );
     }
     return true;

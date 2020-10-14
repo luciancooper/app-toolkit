@@ -52,6 +52,8 @@ function setProps(element, props) {
         // check for property key
         if (propKeys.includes(name)) {
             element[name] = value;
+        } else if (typeof value === 'boolean') {
+            if (value) element.setAttribute(name, '');
         } else {
             element.setAttribute(name, value);
         }

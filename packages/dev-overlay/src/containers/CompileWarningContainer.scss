@@ -1,0 +1,15 @@
+@import '~@lcooper/sass-utils';
+
+.compile-warnings {
+    @include flex(column);
+    overflow: auto;
+    min-width: 50%;
+
+    > header {
+        padding: 1em;
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: center;
+        color: var(--yellow);
+    }
+}

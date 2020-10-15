@@ -1,3 +1,4 @@
+import ansiHtml from '../utils/ansi-html';
 import './CompileError.scss';
 
 function Badge({ type }) {
@@ -49,7 +50,10 @@ function LintingErrors({ level, linters }) {
                                                     }
                                                     <td className='loc-line'>{line}</td>
                                                     <td className='loc-column'>{column}</td>
-                                                    <td className='message'>{message}</td>
+                                                    <td
+                                                        className='message'
+                                                        innerHTML={ansiHtml(message)}
+                                                    />
                                                     <td className='rule-id'>{ruleId}</td>
                                                 </tr>
                                             ))
@@ -116,7 +120,10 @@ export default function CompileError({ level, type, ...data }) {
                         {'in '}
                         <b>{data.file}</b>
                     </header>
-                    <pre className='error-message'>{data.message}</pre>
+                    <pre
+                        className='error-message'
+                        innerHTML={ansiHtml(data.message)}
+                    />
                     <div className='origin-trace'>
                         {
                             data.origin.map(({ id, loc = [] }) => (

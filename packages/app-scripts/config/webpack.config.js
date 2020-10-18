@@ -1,6 +1,8 @@
 const path = require('path'),
     fs = require('fs'),
+    globby = require('globby'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
+    stylelint = require('stylelint'),
     StylelintPlugin = require('stylelint-webpack-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
@@ -9,7 +11,20 @@ const path = require('path'),
 const appPath = fs.realpathSync(process.cwd()),
     appSrc = path.resolve(appPath, './src');
 
-module.exports = (mode) => ({
+function checkStylelint() {
+    // check for any scss / sass files
+    return globby(path.join(appSrc, '**/*.s(a|c)ss')).then((files) => {
+        // if no scss files are found, return false
+        if (!files.length) return Promise.resolve(false);
+        // create linter and ensure a config exists for each file
+        const linter = stylelint.createLinter();
+        return Promise.all(files.map((file) => linter.getConfigForFile(file)))
+            .then(() => true)
+            .catch((err) => false);
+    });
+}
+
+module.exports = async (mode) => ({
     mode,
     devtool: (mode === 'development')
         ? 'cheap-module-source-map'
@@ -256,13 +271,15 @@ module.exports = (mode) => ({
             } : {}),
         }),
         // Applies stylelint to all sass code
-        new StylelintPlugin({
-            stylelintPath: require.resolve('stylelint'),
-            files: '**/*.s(a|c)ss',
-            emitWarning: true,
-            // eslint-disable-next-line global-require
-            formatter: require('../lib/stylelint-formatter'),
-        }),
+        ...(await checkStylelint()) ? [
+            new StylelintPlugin({
+                stylelintPath: require.resolve('stylelint'),
+                files: '**/*.s(a|c)ss',
+                emitWarning: true,
+                // eslint-disable-next-line global-require
+                formatter: require('../lib/stylelint-formatter'),
+            }),
+        ] : [],
         // production plugins
         ...(mode === 'production') ? [
             new MiniCssExtractPlugin({

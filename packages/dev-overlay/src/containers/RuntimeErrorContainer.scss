@@ -2,6 +2,67 @@
 
 .runtime-errors {
     @include flex(column);
-    overflow: auto;
     min-width: 50%;
+    max-height: 100%;
+
+    > .runtime-error-container {
+        overflow: auto;
+    }
+
+    .runtime-errors-header {
+        @include flex(row, $justify: center);
+        padding-bottom: 0.5em;
+
+        > .error-pagination {
+            @include flex(row);
+
+            > * {
+                padding: 0.2em 0.5em;
+                line-height: 1;
+            }
+
+            > .arrow-btn {
+                --background: transparent;
+                @include flex(row, $align: center, $justify: center);
+                appearance: none;
+                border: none;
+                outline: none;
+                border-radius: 0.25em;
+                background: var(--background);
+                cursor: pointer;
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: default;
+                }
+
+                &:not(:disabled):not(:active):hover {
+                    --background: #{hsl(0, 0%, 92%)};
+                }
+
+                &:active {
+                    --background: #{hsl(0, 0%, 84%)};
+                }
+
+                &::before {
+                    @include size(1em);
+                    content: '';
+                    display: block;
+                    background-size: 100%;
+                    background-position: 50%;
+                    background-origin: border-box;
+                    background-repeat: no-repeat;
+                    filter: invert(30%);
+                }
+
+                &.left::before {
+                    background-image: url('../assets/arrow-left.svg');
+                }
+
+                &.right::before {
+                    background-image: url('../assets/arrow-right.svg');
+                }
+            }
+        }
+    }
 }

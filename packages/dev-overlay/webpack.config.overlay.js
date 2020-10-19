@@ -1,4 +1,5 @@
 const path = require('path'),
+    svgToMiniDataURI = require('mini-svg-data-uri'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
@@ -31,6 +32,16 @@ module.exports = {
     },
     module: {
         rules: [
+            // process svg
+            {
+                test: /\.svg$/,
+                loader: 'url-loader',
+                options: {
+                    generator(content) {
+                        return svgToMiniDataURI(content.toString());
+                    },
+                },
+            },
             // process js
             {
                 test: /\.(?:js|mjs|jsx)$/,

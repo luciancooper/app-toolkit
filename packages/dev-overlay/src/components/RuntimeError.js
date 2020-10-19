@@ -24,7 +24,10 @@ function StackFrame({ fn, compiled, src }) {
     );
 }
 
-export default function RuntimeError({ error, isUnhandledRejection, stackFrames }) {
+export default function RuntimeError({
+    record: { error, isUnhandledRejection, stackFrames },
+    hidden = false,
+}) {
     let { name, message } = error;
     if (/^\w*:/.test(message)) {
         ({ 1: name, 2: message } = message.match(/^(\w+): *(.*)$/));
@@ -34,7 +37,7 @@ export default function RuntimeError({ error, isUnhandledRejection, stackFrames 
             : name;
     }
     return (
-        <div className='runtime-error'>
+        <div className='runtime-error' style={(hidden ? { display: 'none' } : {})}>
             <header>
                 <div className='error-name'>{name}</div>
                 <div className='error-message'>{message}</div>

@@ -4,9 +4,41 @@
     @include flex(column);
     min-width: 50%;
     max-height: 100%;
+    position: relative;
 
     > .runtime-error-container {
         overflow: auto;
+    }
+
+    .close-button {
+        --background: transparent;
+        @include position(absolute, $top: 0, $right: 0);
+        @include flex(row, $align: center, $justify: center);
+        padding: 0.2em;
+        border-radius: 0.25em;
+        background: var(--background);
+        cursor: pointer;
+        z-index: 1000;
+
+        &:not(:active):hover {
+            --background: #{hsl(0, 0%, 92%)};
+        }
+
+        &:active {
+            --background: #{hsl(0, 0%, 84%)};
+        }
+
+        &::before {
+            @include size(1.5em);
+            content: '';
+            display: block;
+            background-size: 100%;
+            background-position: 50%;
+            background-origin: border-box;
+            background-repeat: no-repeat;
+            background-image: url('../assets/close.svg');
+            filter: invert(30%);
+        }
     }
 
     .runtime-errors-header {

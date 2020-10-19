@@ -6,7 +6,11 @@ import RuntimeErrorContainer from './containers/RuntimeErrorContainer';
 let iframeRoot = null;
 
 // hook that overlay can call to pass build info to the iframe
-window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
+window.updateContent = (
+    clearRuntimeErrors,
+    { errors = [], warnings = [] },
+    runtimeErrors = [],
+) => {
     // clear the iframe root
     iframeRoot.innerHTML = '';
     // check if there is nothing to display
@@ -29,7 +33,10 @@ window.updateContent = ({ errors = [], warnings = [] }, runtimeErrors = []) => {
     // render runtime errors
     if (runtimeErrors.length) {
         iframeRoot.appendChild(
-            <RuntimeErrorContainer errors={runtimeErrors}/>,
+            <RuntimeErrorContainer
+                errors={runtimeErrors}
+                onClose={clearRuntimeErrors}
+            />,
         );
     }
     return true;

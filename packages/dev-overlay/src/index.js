@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint import/no-unresolved: [2, { ignore: ['overlay-(?:js|css)$'] }] */
 import overlayScript from 'overlay-js';
 import overlayStyle from 'overlay-css';
@@ -16,6 +17,7 @@ function updateIframeContent() {
     }
     // pass error data to the iframe hook. Returns boolean
     const rendered = iframe.contentWindow.updateContent(
+        clearRuntimeErrors,
         currentBuildData || {},
         runtimeErrors,
     );
@@ -82,6 +84,11 @@ window.__overlayReady = () => {
 
 export function setBuildData(data) {
     currentBuildData = data;
+    update();
+}
+
+export function clearRuntimeErrors() {
+    runtimeErrors = [];
     update();
 }
 

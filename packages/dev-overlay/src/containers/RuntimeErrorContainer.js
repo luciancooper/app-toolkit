@@ -1,11 +1,15 @@
 import RuntimeError from '../components/RuntimeError';
 import './RuntimeErrorContainer.scss';
 
-export default function RuntimeErrorContainer({ errors }) {
+export default function RuntimeErrorContainer({ errors, onClose }) {
     if (errors.length === 1) {
         const [error] = errors;
         return (
             <section className='runtime-errors'>
+                <span
+                    className='close-button'
+                    onClick={onClose}
+                />
                 <section className='runtime-error-container'>
                     <RuntimeError record={error}/>
                 </section>
@@ -53,6 +57,10 @@ export default function RuntimeErrorContainer({ errors }) {
 
     return (
         <section className='runtime-errors'>
+            <span
+                className='close-button'
+                onClick={onClose}
+            />
             <div className='runtime-errors-header'>
                 <div className='error-pagination'>
                     {arrowLeft}

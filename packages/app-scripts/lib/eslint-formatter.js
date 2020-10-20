@@ -21,8 +21,8 @@ module.exports = (results, data) => {
                     line = 0,
                     column = 0,
                 }) => ({
-                    line: String(line),
-                    column: String(column),
+                    line: (line != null && !Number.isNaN(line)) ? String(line) : '0',
+                    column: (column != null && !Number.isNaN(column)) ? String(column) : '0',
                     message: message
                         // bold inline code strings
                         .replace(/\B([`'])(.*?)\1\B/g, (m, delim, code) => chalk.bold(code)),

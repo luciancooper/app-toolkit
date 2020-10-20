@@ -21,8 +21,8 @@ module.exports = (results, returnValue) => {
                     severity,
                     text = '',
                 }) => ({
-                    line: String(line),
-                    column: String(column),
+                    line: (line != null && !Number.isNaN(line)) ? String(line) : '0',
+                    column: (column != null && !Number.isNaN(column)) ? String(column) : '0',
                     message: text
                         // remove rule id from message
                         .replace(/\s\(.+\)$/g, '')

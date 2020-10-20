@@ -3,43 +3,55 @@ import CompileErrorContainer from './containers/CompileErrorContainer';
 import CompileWarningContainer from './containers/CompileWarningContainer';
 import RuntimeErrorContainer from './containers/RuntimeErrorContainer';
 
-let iframeRoot = null;
+let iframeRoot = null,
+    clearCallback = null,
+    minimizeCallback = null;
 
-// hook that overlay can call to pass build info to the iframe
-window.updateContent = (
-    clearRuntimeErrors,
-    { errors = [], warnings = [] },
-    runtimeErrors = [],
-) => {
+window.renderCompileErrors = (errors) => {
     // clear the iframe root
     iframeRoot.innerHTML = '';
-    // check if there is nothing to display
-    if (!errors.length && !warnings.length && !runtimeErrors.length) {
-        return false;
-    }
-    // check for errors
-    if (errors.length) {
-        iframeRoot.appendChild(
-            <CompileErrorContainer errors={errors}/>,
-        );
-        return true;
-    }
-    // check for warnings
-    if (warnings.length) {
-        iframeRoot.appendChild(
-            <CompileWarningContainer warnings={warnings}/>,
-        );
-    }
-    // render runtime errors
+    // render compile errors
+    iframeRoot.appendChild(
+        <CompileErrorContainer errors={errors}/>,
+    );
+    return true;
+};
+
+window.renderCompileWarnings = (warnings) => {
+    // clear the iframe root
+    iframeRoot.innerHTML = '';
+    // render compile warnings
+    iframeRoot.appendChild(
+        <CompileWarningContainer
+            warnings={warnings}
+            onMinimize={minimizeCallback}
+        />,
+    );
+    return true;
+};
+
+window.renderRuntimeErrors = (runtimeErrors) => {
+    // clear the iframe root
+    iframeRoot.innerHTML = '';
+    // render runtime errors if any exist
     if (runtimeErrors.length) {
         iframeRoot.appendChild(
             <RuntimeErrorContainer
                 errors={runtimeErrors}
-                onClose={clearRuntimeErrors}
+                onClose={clearCallback}
             />,
         );
+        return true;
     }
-    return true;
+    return false;
+};
+
+window.setClearCallback = (cb) => {
+    clearCallback = cb;
+};
+
+window.setMinimizeCallback = (cb) => {
+    minimizeCallback = cb;
 };
 
 document.body.style.margin = '0';

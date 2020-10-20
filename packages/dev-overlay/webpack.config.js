@@ -1,4 +1,5 @@
-const path = require('path');
+const path = require('path'),
+    svgToMiniDataURI = require('mini-svg-data-uri');
 
 module.exports = {
     mode: 'development',
@@ -47,6 +48,16 @@ module.exports = {
                     {
                         test: /overlay\.(?:js|css)$/,
                         use: 'raw-loader',
+                    },
+                    // process svg
+                    {
+                        test: /\.svg$/,
+                        loader: 'url-loader',
+                        options: {
+                            generator(content) {
+                                return svgToMiniDataURI(content.toString());
+                            },
+                        },
                     },
                     // resolve wasm files
                     {

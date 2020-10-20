@@ -18,6 +18,7 @@ function processMessage({ action, ...data }) {
     // action is either 'building', 'built', or 'sync'
     if (action === 'building') {
         console.log(`[dev-server] bundle ${data.name ? `'${data.name}' ` : ''}rebuilding`);
+        overlay.recompiling();
         return;
     }
     if (action === 'built') {

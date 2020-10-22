@@ -8,6 +8,7 @@ const http = require('http'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
+    ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
     openBrowser = require('better-opn'),
     choosePort = require('./utils/choose-port'),
     clearConsole = require('./utils/clear-console'),
@@ -15,32 +16,45 @@ const http = require('http'),
     errorFormatter = require('./format-errors');
 
 module.exports = class {
-    constructor(compiler, {
+    constructor(config, {
         interactive = process.stdout.isTTY,
         path = '/__dev-server',
         heartbeat = 10 * 1000,
     } = {}) {
-        this.compiler = compiler;
-
-        const { options: config } = compiler;
-
         // add client entries
         config.entry = prependEntry(config.entry, [
             require.resolve('../client/entry'),
             require.resolve('webpack/hot/dev-server'),
         ]);
-        compiler.hooks.entryOption.call(config.context, config.entry);
 
-        // inject HotModuleReplacementPlugin into the compiler config if it doesnt already exist
+        // inject HotModuleReplacementPlugin into the config if it doesnt already exist
         config.plugins = config.plugins || [];
         if (!config.plugins.some((plugin) => plugin.constructor.name === 'HotModuleReplacementPlugin')) {
-            // instantiate the HotModuleReplacementPlugin
-            const plugin = new webpack.HotModuleReplacementPlugin();
-            // add plugin to the config
-            config.plugins.push();
-            // apply the plugin to the compiler
-            plugin.apply(compiler);
+            config.plugins.push(
+                new webpack.HotModuleReplacementPlugin(),
+            );
         }
+
+        // inject ReactRefreshPlugin into the config if it doesnt already exist
+        if (!config.plugins.some((plugin) => plugin.constructor.name === 'ReactRefreshPlugin')) {
+            config.plugins.push(
+                new ReactRefreshPlugin({
+                    overlay: false,
+                }),
+            );
+        }
+
+        // create webpack compiler instance
+        let compiler;
+        try {
+            compiler = webpack(config);
+        } catch ({ message }) {
+            // log error and exit
+            console.log(chalk`{bold.red Error initializing webpack compiler:}\n\n${message}\n`);
+            process.exit(1);
+        }
+
+        this.compiler = compiler;
 
         // setup express app
         this.app = express();

@@ -25,6 +25,17 @@ function checkStylelint() {
     });
 }
 
+function checkJsxRuntime() {
+    try {
+        require.resolve('react/jsx-runtime.js', {
+            paths: [appPath],
+        });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
 module.exports = async (mode) => ({
     mode,
     devtool: (mode === 'development')
@@ -94,7 +105,9 @@ module.exports = async (mode) => ({
                             configFile: false,
                             presets: [
                                 require.resolve('@babel/preset-env'),
-                                require.resolve('@babel/preset-react'),
+                                [require.resolve('@babel/preset-react'), {
+                                    runtime: checkJsxRuntime() ? 'automatic' : 'classic',
+                                }],
                             ],
                             plugins: [
                                 [

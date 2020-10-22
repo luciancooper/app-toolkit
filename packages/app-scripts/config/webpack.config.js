@@ -2,6 +2,7 @@ const path = require('path'),
     fs = require('fs'),
     globby = require('globby'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
+    ESLintPlugin = require('eslint-webpack-plugin'),
     stylelint = require('stylelint'),
     StylelintPlugin = require('stylelint-webpack-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
@@ -68,24 +69,6 @@ module.exports = async (mode) => ({
     },
     module: {
         rules: [
-            // eslint-loader
-            {
-                test: /\.(?:js|mjs|jsx)$/,
-                include: appSrc,
-                enforce: 'pre',
-                use: [
-                    {
-                        loader: require.resolve('eslint-loader'),
-                        options: {
-                            cwd: appPath,
-                            eslintPath: require.resolve('eslint'),
-                            formatter: require.resolve('../lib/eslint-formatter'),
-                            cache: true,
-                            emitWarning: true,
-                        },
-                    },
-                ],
-            },
             {
                 oneOf: [
                     // url-loader
@@ -269,6 +252,14 @@ module.exports = async (mode) => ({
                     minifyURLs: true,
                 },
             } : {}),
+        }),
+        // Apply eslint to all js code
+        new ESLintPlugin({
+            context: appSrc,
+            extensions: ['js', 'mjs', 'jsx'],
+            eslintPath: require.resolve('eslint'),
+            formatter: require.resolve('../lib/eslint-formatter'),
+            emitWarning: true,
         }),
         // Applies stylelint to all sass code
         ...(await checkStylelint()) ? [

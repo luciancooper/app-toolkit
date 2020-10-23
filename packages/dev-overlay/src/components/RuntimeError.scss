@@ -23,16 +23,18 @@
 
         > .stack-frame {
             line-height: 1.5;
-            padding: 0.4em 0;
 
             > .location {
                 font-size: 0.9em;
                 color: var(--text-dim);
             }
 
-            > .code-block,
+            > .code-block {
+                margin-top: 0.4em;
+            }
+
             + .stack-frame {
-                margin-top: 0.6em;
+                margin-top: 0.8em;
             }
         }
     }

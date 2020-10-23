@@ -236,21 +236,23 @@ async function handleRuntimeError(error, isUnhandledRejection = false) {
         console.log(`Could not get stack frames: ${e.mesage || e}`);
         return;
     }
+
+    // create error record
+    const errorRecord = {
+        error,
+        isUnhandledRejection,
+        stackFrames,
+    };
+
+    // add record to runtime error array
+    runtimeErrors = [...runtimeErrors, errorRecord];
+
     // enhance stack frames
     try {
-        stackFrames = await enhanceFrames(stackFrames);
+        errorRecord.stackFrames = await enhanceFrames(stackFrames);
     } catch (e) {
         console.log(`Could not enhance stack frames: ${e.message || e}`);
     }
-    // add error data to runtimeErrors array
-    runtimeErrors = [
-        ...runtimeErrors,
-        {
-            error,
-            isUnhandledRejection,
-            stackFrames,
-        },
-    ];
     // queue overlay update
     updateRuntimeErrors();
 }

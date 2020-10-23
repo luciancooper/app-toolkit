@@ -1,7 +1,8 @@
 @import '~@lcooper/sass-utils';
 
 :root {
-    --text: #{hsl(210, 12%, 16%)};
+    --text: #{hsl(0, 0%, 91%)};
+    --text-dark: #{hsl(210, 12%, 16%)};
     --text-dim: #{hsl(198, 4%, 55%)};
     --red: #{hsl(354, 75%, 51%)};
     --yellow: #{hsl(46, 71%, 68%)};
@@ -15,6 +16,6 @@
     box-sizing: border-box;
     padding: 1rem;
     font-family: monospace;
-    background-color: hsl(0, 0%, 100%);
+    background-color: hsla(0, 0%, 0%, 0.85);
     color: var(--text);
 }

@@ -17,6 +17,7 @@
 
 .minimize-button {
     --background: transparent;
+    --filter: invert(80%);
     @include position(absolute, $top: 0, $right: 0);
     @include flex(row, $align: center, $justify: center);
     padding: 0.2em;
@@ -26,11 +27,13 @@
     z-index: 1000;
 
     &:not(:active):hover {
-        --background: #{hsl(0, 0%, 92%)};
+        --background: #{hsl(0, 0%, 85%)};
+        --filter: invert(30%);
     }
 
     &:active {
-        --background: #{hsl(0, 0%, 84%)};
+        --background: #{hsl(0, 0%, 75%)};
+        --filter: invert(30%);
     }
 
     &::before {
@@ -42,6 +45,6 @@
         background-origin: border-box;
         background-repeat: no-repeat;
         background-image: url('../assets/minimize.svg');
-        filter: invert(30%);
+        filter: var(--filter);
     }
 }

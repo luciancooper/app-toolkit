@@ -1,6 +1,9 @@
 @import '~@lcooper/sass-utils';
 
 .runtime-error {
+    @include flex(column);
+    height: 100%;
+
     > header {
         padding: 0.4em 1em;
         border-bottom: 1px solid var(--text-dim);
@@ -19,6 +22,8 @@
     }
 
     > .stack-trace {
+        flex-grow: 1;
+        overflow: auto;
         padding: 0.6em 1em;
 
         > .stack-frame {

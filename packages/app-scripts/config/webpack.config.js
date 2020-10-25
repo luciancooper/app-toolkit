@@ -1,9 +1,9 @@
 const path = require('path'),
     fs = require('fs'),
     globby = require('globby'),
+    { cosmiconfigSync } = require('cosmiconfig'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
     ESLintPlugin = require('eslint-webpack-plugin'),
-    stylelint = require('stylelint'),
     StylelintPlugin = require('stylelint-webpack-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
@@ -14,15 +14,15 @@ const appPath = fs.realpathSync(process.cwd()),
 
 function checkStylelint() {
     // check for any scss / sass files
-    return globby(path.join(appSrc, '**/*.s(a|c)ss')).then((files) => {
-        // if no scss files are found, return false
-        if (!files.length) return Promise.resolve(false);
-        // create linter and ensure a config exists for each file
-        const linter = stylelint.createLinter();
-        return Promise.all(files.map((file) => linter.getConfigForFile(file)))
-            .then(() => true)
-            .catch((err) => false);
-    });
+    const files = globby.sync(path.join(appSrc, '**/*.s(a|c)ss'));
+    // if no scss files are found, return false
+    if (!files.length) return false;
+    // create a synchronous cosmiconfig explorer instance and ensure a config exists for each file
+    const explorer = cosmiconfigSync('stylelint');
+    for (let i = 0; i < files.length; i += 1) {
+        if (explorer.search(files[i]) == null) return false;
+    }
+    return true;
 }
 
 function checkJsxRuntime() {
@@ -36,7 +36,7 @@ function checkJsxRuntime() {
     }
 }
 
-module.exports = async (mode) => ({
+module.exports = (mode) => ({
     mode,
     devtool: (mode === 'development')
         ? 'cheap-module-source-map'
@@ -276,7 +276,7 @@ module.exports = async (mode) => ({
             emitWarning: true,
         }),
         // Applies stylelint to all sass code
-        ...(await checkStylelint()) ? [
+        ...checkStylelint() ? [
             new StylelintPlugin({
                 stylelintPath: require.resolve('stylelint'),
                 files: '**/*.s(a|c)ss',

@@ -39,6 +39,7 @@
     "babel-loader": "^8.1.0",
     "better-opn": "^2.0.0",
     "chalk": "^4.1.0",
+    "cosmiconfig": "^7.0.0",
     "css-loader": "^4.3.0",
     "eslint": "^7.9.0",
     "eslint-webpack-plugin": "^2.1.0",

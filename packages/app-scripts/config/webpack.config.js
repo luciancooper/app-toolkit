@@ -104,7 +104,9 @@ module.exports = (mode) => ({
                             babelrc: false,
                             configFile: false,
                             presets: [
-                                require.resolve('@babel/preset-env'),
+                                [require.resolve('@babel/preset-env'), {
+                                    browserslistEnv: mode,
+                                }],
                                 [require.resolve('@babel/preset-react'), {
                                     runtime: checkJsxRuntime() ? 'automatic' : 'classic',
                                 }],

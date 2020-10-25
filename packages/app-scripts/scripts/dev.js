@@ -1,8 +1,19 @@
-const chalk = require('chalk'),
+const fs = require('fs'),
+    chalk = require('chalk'),
     DevServer = require('../lib/dev-server'),
+    checkBrowsers = require('../lib/utils/check-browsers'),
     configFactory = require('../config/webpack.config');
 
-console.log(chalk`🚀  {bold Launching dev server...}`);
+console.log(chalk`🚀  {bold Launching dev server...}\n`);
+
+const appPath = fs.realpathSync(process.cwd());
+
+// warn if target browsers have not been specified
+try {
+    checkBrowsers(appPath);
+} catch ({ message }) {
+    console.log(chalk`{bold.red Warning:} ${message}\n`);
+}
 
 const port = parseInt(process.env.PORT, 10) || 3000;
 

@@ -3,14 +3,22 @@ const path = require('path'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     configFactory = require('../config/webpack.config'),
+    checkBrowsers = require('../lib/utils/check-browsers'),
     errorFormatter = require('../lib/format-errors');
 
 const [, , mode = 'production'] = process.argv;
 
-console.log(chalk`📦  {bold Building app in {blue ${mode}} mode}`);
+console.log(chalk`📦  {bold Building app in {blue ${mode}} mode}\n`);
 
 const appPath = fs.realpathSync(process.cwd()),
     appDist = path.resolve(appPath, 'dist');
+
+// warn if target browsers have not been specified
+try {
+    checkBrowsers(appPath);
+} catch ({ message }) {
+    console.log(chalk`{bold.red Warning:} ${message}\n`);
+}
 
 // create webpack config
 let config;

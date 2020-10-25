@@ -18,7 +18,9 @@ try {
 }
 
 // create dev server
-const devServer = new DevServer(config);
+const devServer = new DevServer(config, {
+    interactive: process.stdout.isTTY,
+});
 
 // launch the dev server
 devServer.listen(port);

@@ -1,5 +1,4 @@
 const path = require('path'),
-    fs = require('fs'),
     globby = require('globby'),
     { cosmiconfigSync } = require('cosmiconfig'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
@@ -7,14 +6,12 @@ const path = require('path'),
     StylelintPlugin = require('stylelint-webpack-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
-    OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-
-const appPath = fs.realpathSync(process.cwd()),
-    appSrc = path.resolve(appPath, './src');
+    OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
+    paths = require('./paths');
 
 function checkStylelint() {
     // check for any scss / sass files
-    const files = globby.sync(path.join(appSrc, '**/*.s(a|c)ss'));
+    const files = globby.sync(path.join(paths.src, '**/*.s(a|c)ss'));
     // if no scss files are found, return false
     if (!files.length) return false;
     // create a synchronous cosmiconfig explorer instance and ensure a config exists for each file
@@ -28,7 +25,7 @@ function checkStylelint() {
 function checkJsxRuntime() {
     try {
         require.resolve('react/jsx-runtime.js', {
-            paths: [appPath],
+            paths: [paths.root],
         });
         return true;
     } catch (e) {
@@ -42,10 +39,10 @@ module.exports = (mode) => ({
         ? 'cheap-module-source-map'
         : 'source-map',
     entry: [
-        path.resolve(appPath, 'src/index'),
+        paths.entry,
     ],
     output: {
-        path: path.resolve(appPath, 'dist'),
+        path: paths.dist,
         filename: (mode === 'production')
             ? 'assets/[name].[contenthash:8].js'
             : 'assets/[name].js',
@@ -69,7 +66,7 @@ module.exports = (mode) => ({
     resolve: {
         modules: [
             'node_modules',
-            path.resolve(appPath, 'node_modules'),
+            path.resolve(paths.root, 'node_modules'),
         ],
         extensions: [
             '.mjs',
@@ -98,7 +95,7 @@ module.exports = (mode) => ({
                     // process source js
                     {
                         test: /\.(?:js|mjs|jsx)$/,
-                        include: appSrc,
+                        include: paths.src,
                         loader: require.resolve('babel-loader'),
                         options: {
                             babelrc: false,
@@ -253,7 +250,7 @@ module.exports = (mode) => ({
         // Generates `index.html` with the <script> injected.
         new HtmlWebpackPlugin({
             inject: true,
-            template: path.resolve(appPath, 'src/index.html'),
+            template: paths.html,
             ...((mode === 'production') ? {
                 minify: {
                     removeComments: true,
@@ -271,7 +268,7 @@ module.exports = (mode) => ({
         }),
         // Apply eslint to all js code
         new ESLintPlugin({
-            context: appSrc,
+            context: paths.src,
             extensions: ['js', 'mjs', 'jsx'],
             eslintPath: require.resolve('eslint'),
             formatter: require.resolve('../lib/eslint-formatter'),

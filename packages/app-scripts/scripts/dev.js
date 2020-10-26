@@ -1,16 +1,26 @@
-const fs = require('fs'),
-    chalk = require('chalk'),
+const chalk = require('chalk'),
     DevServer = require('../lib/dev-server'),
+    checkRequiredFiles = require('../lib/utils/check-required-files'),
     checkBrowsers = require('../lib/utils/check-browsers'),
+    paths = require('../config/paths'),
     configFactory = require('../config/webpack.config');
 
 console.log(chalk`🚀  {bold Launching dev server...}\n`);
 
-const appPath = fs.realpathSync(process.cwd());
+// check that required files exist
+try {
+    checkRequiredFiles(paths.root, [
+        paths.entry,
+        paths.html,
+    ]);
+} catch ({ message }) {
+    console.log(chalk`{bold.red Error:} ${message}`);
+    process.exit(1);
+}
 
 // warn if target browsers have not been specified
 try {
-    checkBrowsers(appPath);
+    checkBrowsers(paths.root);
 } catch ({ message }) {
     console.log(chalk`{bold.red Warning:} ${message}\n`);
 }

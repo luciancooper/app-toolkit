@@ -1,21 +1,30 @@
-const path = require('path'),
-    fs = require('fs-extra'),
+const fs = require('fs-extra'),
     chalk = require('chalk'),
     webpack = require('webpack'),
-    configFactory = require('../config/webpack.config'),
+    checkRequiredFiles = require('../lib/utils/check-required-files'),
     checkBrowsers = require('../lib/utils/check-browsers'),
-    errorFormatter = require('../lib/format-errors');
+    errorFormatter = require('../lib/format-errors'),
+    paths = require('../config/paths'),
+    configFactory = require('../config/webpack.config');
 
 const [, , mode = 'production'] = process.argv;
 
 console.log(chalk`📦  {bold Building app in {blue ${mode}} mode}\n`);
 
-const appPath = fs.realpathSync(process.cwd()),
-    appDist = path.resolve(appPath, 'dist');
+// check that required files exist
+try {
+    checkRequiredFiles(paths.root, [
+        paths.entry,
+        paths.html,
+    ]);
+} catch ({ message }) {
+    console.log(chalk`{bold.red Error:} ${message}`);
+    process.exit(1);
+}
 
 // warn if target browsers have not been specified
 try {
-    checkBrowsers(appPath);
+    checkBrowsers(paths.root);
 } catch ({ message }) {
     console.log(chalk`{bold.red Warning:} ${message}\n`);
 }
@@ -42,7 +51,7 @@ try {
 }
 
 // clear the output directory
-fs.emptyDirSync(appDist);
+fs.emptyDirSync(paths.dist);
 
 // run webpack
 compiler.run((err, stats) => {

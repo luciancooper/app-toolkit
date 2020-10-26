@@ -5,9 +5,9 @@ module.exports = (results, returnValue) => {
     // count total errors and warnings
     const problems = results.flatMap(({ warnings = [], ignored = false }) => (ignored ? [] : warnings)).length;
     // check for no errors and warnings
-    if (problems === 0) return '[]';
+    if (problems === 0) return 'lintdata:[]';
     // transform results data and stringify
-    return JSON.stringify(
+    const json = JSON.stringify(
         results
             .filter(({ warnings = [], ignored = false }) => !ignored && warnings.length)
             .map(({ source, warnings }) => ({
@@ -33,4 +33,5 @@ module.exports = (results, returnValue) => {
                 })),
             })),
     );
+    return `lintdata:${json}`;
 };

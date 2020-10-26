@@ -75,12 +75,12 @@ function extractError(webpackError) {
     };
 }
 
-function isEslintError({ originalError: { name } }) {
-    return name === 'ESLintError';
+function isEslintError({ originalError: { name, message } }) {
+    return name === 'ESLintError' && /^lintdata:/.test(message.trim());
 }
 
-function isStylelintError({ name }) {
-    return name === 'StylelintError';
+function isStylelintError({ name, message }) {
+    return name === 'StylelintError' && /^lintdata:/.test(message.trim());
 }
 
 function isModuleNotFoundError({ name, message, webpackError: { dependencies } }) {
@@ -179,8 +179,12 @@ function transformModuleNotFoundErrors(errors) {
  */
 function groupLintErrors(eslintErrors, stylelintErrors) {
     if (eslintErrors.length + stylelintErrors.length === 0) return null;
-    const eslintData = eslintErrors.flatMap(({ originalError: { message } }) => JSON.parse(message.trim())),
-        stylelintData = stylelintErrors.flatMap(({ message }) => JSON.parse(message.trim()));
+    const eslintData = eslintErrors.flatMap(({ originalError: { message } }) => (
+            JSON.parse(message.trim().replace(/^lintdata:/, ''))
+        )),
+        stylelintData = stylelintErrors.flatMap(({ message }) => (
+            JSON.parse(message.trim().replace(/^lintdata:/, ''))
+        ));
     return {
         type: 'lint-errors',
         linters: [

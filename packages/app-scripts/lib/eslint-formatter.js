@@ -5,9 +5,9 @@ module.exports = (results, data) => {
     // count total errors and warnings
     const problems = results.reduce((t, { errorCount: e, warningCount: w }) => t + e + w, 0);
     // check for no errors and warnings
-    if (problems === 0) return '[]';
+    if (problems === 0) return 'lintdata:[]';
     // transform results data and stringify
-    return JSON.stringify(
+    const json = JSON.stringify(
         results
             .filter(({ messages }) => messages.length)
             .map(({ filePath, messages }) => ({
@@ -31,4 +31,5 @@ module.exports = (results, data) => {
                 })),
             })),
     );
+    return `lintdata:${json}`;
 };

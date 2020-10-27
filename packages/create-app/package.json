@@ -2,7 +2,7 @@
   "name": "@lcooper/create-app",
   "version": "0.0.0",
   "description": "Create web apps with no configuration",
-  "main": "index.js",
+  "bin": "./index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -27,6 +27,11 @@
   "homepage": "https://github.com/luciancooper/app-toolkit/packages/create-app#readme",
   "dependencies": {
     "chalk": "^4.1.0",
-    "fs-extra": "^9.0.1"
+    "cross-spawn": "^7.0.3",
+    "fs-extra": "^9.0.1",
+    "inquirer": "^7.3.3",
+    "minimist": "^1.2.5",
+    "semver": "^7.3.2",
+    "validate-npm-package-name": "^3.0.0"
   }
 }

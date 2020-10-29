@@ -3,6 +3,7 @@ const path = require('path'),
     fs = require('fs'),
     chalk = require('chalk'),
     minimist = require('minimist'),
+    spawn = require('cross-spawn'),
     inquirer = require('inquirer'),
     semver = require('semver'),
     spdxCorrect = require('spdx-correct'),
@@ -41,20 +42,45 @@ async function main(args) {
 
     console.log(chalk`🎉  {bold Creating a new app {green ${appName}} in {cyan ${root}}}\n`);
 
-    // if user has yarn installed, ask if they would like to use it
-    const { yarn = false } = await inquirer.prompt([{
-            type: 'confirm',
-            name: 'yarn',
-            message: 'Use yarn?',
-            default: true,
-            when: detectYarn(),
-        }]),
+    const {
+            git,
+            yarn = false,
+        } = await inquirer.prompt([
+            {
+                type: 'confirm',
+                name: 'git',
+                message: 'Initialize a git repository?',
+                default: true,
+            },
+            // if user has yarn installed, ask if they would like to use it
+            {
+                type: 'confirm',
+                name: 'yarn',
+                message: 'Use yarn?',
+                default: true,
+                when: detectYarn(),
+            },
+        ]),
         {
             user: {
                 name: defaultAuthor = '',
                 email: defaultAuthorEmail = '',
             } = {},
         } = gitConfig() || {};
+
+    if (git) {
+        // initialize git repository
+        try {
+            spawn.sync('git', ['init'], { cwd: root, stdio: 'ignore' });
+            // copy gitignore
+            copyFile(
+                path.resolve(__dirname, './template/gitignore'),
+                path.resolve(root, './.gitignore'),
+            );
+        } catch (e) {
+            console.warn(chalk`\n{bold.yellow Warning:} could not initialize git repo repository\n`);
+        }
+    }
 
     console.log(chalk`\nCreating {yellow package.json}:\n`);
 

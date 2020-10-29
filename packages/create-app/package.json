@@ -32,6 +32,7 @@
     "inquirer": "^7.3.3",
     "minimist": "^1.2.5",
     "semver": "^7.3.2",
+    "spdx-correct": "^3.1.1",
     "validate-npm-package-name": "^3.0.0"
   }
 }

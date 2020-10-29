@@ -4,9 +4,11 @@ const path = require('path'),
     minimist = require('minimist'),
     inquirer = require('inquirer'),
     semver = require('semver'),
+    spdxCorrect = require('spdx-correct'),
     validateName = require('./lib/validate-name'),
     validateDirectory = require('./lib/validate-directory'),
     detectYarn = require('./lib/detect-yarn'),
+    createLicense = require('./lib/create-license'),
     createPackageJson = require('./lib/write-package-json'),
     install = require('./lib/install');
 
@@ -43,7 +45,12 @@ async function main(args) {
     console.log(chalk`\nCreating {yellow package.json}:\n`);
 
     // prompt user for package.json info
-    const packageInfo = await inquirer.prompt([
+    const {
+        author,
+        license,
+        licenseFile,
+        ...packageInfo
+    } = await inquirer.prompt([
         {
             type: 'input',
             name: 'name',
@@ -94,11 +101,36 @@ async function main(args) {
             message: 'Author Email',
             when: (answers) => answers.author,
         },
+        {
+            type: 'input',
+            name: 'license',
+            message: 'License',
+            default: 'MIT',
+            validate: (value) => (
+                (value && spdxCorrect(value) == null)
+                    ? 'Please enter a valid license identifier'
+                    : true
+            ),
+        },
+        {
+            type: 'confirm',
+            name: 'licenseFile',
+            message: 'Create License File?',
+            default: true,
+            when: (answers) => (answers.license && answers.author),
+        },
     ]);
+
+    // write LICENSE file
+    if (licenseFile) {
+        await createLicense(root, spdxCorrect(license), author);
+    }
 
     // write package.json file
     createPackageJson(root, {
         ...packageInfo,
+        author,
+        license: license ? spdxCorrect(license) : null,
         scripts: {
             build: 'app-scripts build',
             dev: 'app-scripts dev',

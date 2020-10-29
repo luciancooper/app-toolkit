@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const path = require('path'),
+    fs = require('fs'),
     chalk = require('chalk'),
     minimist = require('minimist'),
     inquirer = require('inquirer'),
@@ -12,6 +13,12 @@ const path = require('path'),
     createLicense = require('./lib/create-license'),
     createPackageJson = require('./lib/write-package-json'),
     install = require('./lib/install');
+
+function copyFile(src, dest, transform) {
+    let file = fs.readFileSync(src, 'utf8');
+    if (transform) file = transform(file);
+    fs.writeFileSync(dest, file);
+}
 
 async function main(args) {
     // check for help flag (-help / -h)
@@ -162,6 +169,25 @@ async function main(args) {
         dependencies: {},
         devDependencies: {},
     });
+
+    // create src directory
+    fs.mkdirSync(path.join(root, 'src'));
+    // copy template src/index.js
+    copyFile(
+        path.resolve(__dirname, './template/src/index.js'),
+        path.resolve(root, './src/index.js'),
+    );
+    // copy template src/.eslintrc.js
+    copyFile(
+        path.resolve(__dirname, './template/src/.eslintrc.js'),
+        path.resolve(root, './src/.eslintrc.js'),
+    );
+    // copy template src/index.html
+    copyFile(
+        path.resolve(__dirname, './template/src/index.html'),
+        path.resolve(root, './src/index.html'),
+        (file) => file.replace(/%TITLE%/, appName),
+    );
 
     // install dependencies
     console.log(chalk.bold('\nInstalling dependencies\n'));

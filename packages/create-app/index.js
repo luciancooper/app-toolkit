@@ -8,6 +8,7 @@ const path = require('path'),
     validateName = require('./lib/validate-name'),
     validateDirectory = require('./lib/validate-directory'),
     detectYarn = require('./lib/detect-yarn'),
+    gitConfig = require('./lib/git-config'),
     createLicense = require('./lib/create-license'),
     createPackageJson = require('./lib/write-package-json'),
     install = require('./lib/install');
@@ -35,12 +36,18 @@ async function main(args) {
 
     // if user has yarn installed, ask if they would like to use it
     const { yarn = false } = await inquirer.prompt([{
-        type: 'confirm',
-        name: 'yarn',
-        message: 'Use yarn?',
-        default: true,
-        when: detectYarn(),
-    }]);
+            type: 'confirm',
+            name: 'yarn',
+            message: 'Use yarn?',
+            default: true,
+            when: detectYarn(),
+        }]),
+        {
+            user: {
+                name: defaultAuthor = '',
+                email: defaultAuthorEmail = '',
+            } = {},
+        } = gitConfig() || {};
 
     console.log(chalk`\nCreating {yellow package.json}:\n`);
 
@@ -94,11 +101,13 @@ async function main(args) {
             type: 'input',
             name: 'author',
             message: 'Author Name',
+            default: defaultAuthor,
         },
         {
             type: 'input',
             name: 'authorEmail',
             message: 'Author Email',
+            default: defaultAuthorEmail,
             when: (answers) => answers.author,
         },
         {

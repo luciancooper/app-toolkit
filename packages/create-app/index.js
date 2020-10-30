@@ -132,6 +132,12 @@ async function main(args) {
         },
         {
             type: 'input',
+            name: 'repository',
+            message: 'Repository URL',
+            when: () => git,
+        },
+        {
+            type: 'input',
             name: 'author',
             message: 'Author Name',
             default: defaultAuthor,

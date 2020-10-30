@@ -52,11 +52,26 @@ const fieldOrder = [
     'optionalDependencies',
 ].reverse();
 
+function repoUrl(repo) {
+    let url;
+    // test for repo shortcut syntax
+    const m = repo.match(/^(?:(github|gitlab|bitbucket):)?([\w-]+)\/(.+)$/);
+    if (m) {
+        const { 1: host = 'github', 2: user, 3: name } = m;
+        url = `git+https://${host}.com/${user}/${name}.git`;
+    } else {
+        // else assume repo url
+        url = repo.replace(/^git@(github|gitlab|bitbucket).com:/, 'git+https://$1.com/');
+    }
+    return { type: 'git', url };
+}
+
 module.exports = (root, {
     isPrivate,
     keywords,
     author,
     authorEmail,
+    repository,
     ...fields
 }) => {
     const packageInfo = {
@@ -66,6 +81,7 @@ module.exports = (root, {
         author: author
             ? (authorEmail ? `${author} <${authorEmail}>` : author)
             : null,
+        repository: repository ? repoUrl(repository) : null,
     };
     // write package.json file to root dir
     fs.writeFileSync(

@@ -57,7 +57,13 @@ module.exports = (mode) => ({
             new TerserPlugin({
                 sourceMap: true,
             }),
-            new OptimizeCSSAssetsPlugin(),
+            new OptimizeCSSAssetsPlugin({
+                cssProcessorOptions: {
+                    map: {
+                        inline: false,
+                    },
+                },
+            }),
         ],
         splitChunks: {
             chunks: 'all',
@@ -162,6 +168,7 @@ module.exports = (mode) => ({
                                 loader: require.resolve('css-loader'),
                                 options: {
                                     importLoaders: 1,
+                                    sourceMap: true,
                                 },
                             },
                             {
@@ -181,6 +188,7 @@ module.exports = (mode) => ({
                                             ],
                                         ],
                                     },
+                                    sourceMap: true,
                                 },
                             },
                         ],
@@ -197,6 +205,7 @@ module.exports = (mode) => ({
                                 loader: require.resolve('css-loader'),
                                 options: {
                                     importLoaders: 2,
+                                    sourceMap: true,
                                 },
                             },
                             {
@@ -216,6 +225,7 @@ module.exports = (mode) => ({
                                             ],
                                         ],
                                     },
+                                    sourceMap: true,
                                 },
                             },
                             {
@@ -223,6 +233,7 @@ module.exports = (mode) => ({
                                 options: {
                                     // eslint-disable-next-line global-require
                                     implementation: require('sass'),
+                                    sourceMap: true,
                                 },
                             },
                         ],

@@ -45,6 +45,7 @@ async function main(args) {
     const {
             git,
             yarn = false,
+            scss,
         } = await inquirer.prompt([
             {
                 type: 'confirm',
@@ -59,6 +60,12 @@ async function main(args) {
                 message: 'Use yarn?',
                 default: true,
                 when: detectYarn(),
+            },
+            {
+                type: 'confirm',
+                name: 'scss',
+                message: 'Include scss styling?',
+                default: true,
             },
         ]),
         {
@@ -186,6 +193,9 @@ async function main(args) {
         eslintConfig: {
             extends: '@lcooper/eslint-config',
         },
+        stylelint: scss ? {
+            extends: '@lcooper/stylelint-config-scss',
+        } : null,
         browserslist: {
             production: [
                 '>0.2%',
@@ -208,12 +218,20 @@ async function main(args) {
     copyFile(
         path.resolve(__dirname, './template/src/index.js'),
         path.resolve(root, './src/index.js'),
+        (file) => file.replace(/^\/\/ (import '\.\/index\.scss';\n)/m, scss ? '$1' : ''),
     );
     // copy template src/.eslintrc.js
     copyFile(
         path.resolve(__dirname, './template/src/.eslintrc.js'),
         path.resolve(root, './src/.eslintrc.js'),
     );
+    // copy template src/index.scss
+    if (scss) {
+        copyFile(
+            path.resolve(__dirname, './template/src/index.scss'),
+            path.resolve(root, './src/index.scss'),
+        );
+    }
     // copy template src/index.html
     copyFile(
         path.resolve(__dirname, './template/src/index.html'),
@@ -240,6 +258,10 @@ async function main(args) {
         'eslint-plugin-import',
         'eslint-plugin-jsdoc',
         'eslint-plugin-react',
+        ...scss ? [
+            'stylelint',
+            '@lcooper/stylelint-config-scss',
+        ] : [],
     ], yarn, true);
 
     // finish

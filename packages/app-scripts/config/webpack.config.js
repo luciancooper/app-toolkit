@@ -56,6 +56,17 @@ module.exports = (mode) => ({
         minimizer: [
             new TerserPlugin({
                 sourceMap: true,
+                terserOptions: {
+                    compress: {
+                        warnings: false,
+                        comparisons: false,
+                    },
+                    output: {
+                        comments: false,
+                        ascii_only: false,
+                    },
+                },
+                extractComments: false,
             }),
             new OptimizeCSSAssetsPlugin({
                 cssProcessorOptions: {

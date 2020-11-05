@@ -214,6 +214,11 @@ async function main(args) {
 
     // create src directory
     fs.mkdirSync(path.join(root, 'src'));
+    // copy template app.config.js
+    copyFile(
+        path.resolve(__dirname, './template/app.config.js'),
+        path.resolve(root, './app.config.js'),
+    );
     // copy template src/index.js
     copyFile(
         path.resolve(__dirname, './template/src/index.js'),

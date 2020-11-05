@@ -1,0 +1,56 @@
+{
+  "name": "@lcooper/dev-overlay",
+  "version": "0.0.0",
+  "description": "A development overlay for displaying errors and warnings in the browser",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "node tasks/build.js",
+    "watch": "node tasks/build.js --watch"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luciancooper/app-toolkit.git",
+    "directory": "packages/dev-overlay"
+  },
+  "keywords": [
+    "overlay",
+    "syntax",
+    "error",
+    "warning"
+  ],
+  "author": "Lucian Cooper <cooperlucian@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/luciancooper/app-toolkit/issues"
+  },
+  "homepage": "https://github.com/luciancooper/app-toolkit/packages/dev-overlay#readme",
+  "devDependencies": {
+    "@babel/core": "^7.11.6",
+    "@babel/plugin-transform-runtime": "^7.11.5",
+    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-react": "^7.10.4",
+    "@babel/runtime": "^7.11.2",
+    "@lcooper/sass-utils": "^1.0.0",
+    "babel-loader": "^8.1.0",
+    "chalk": "^4.1.0",
+    "chokidar": "^3.4.2",
+    "css-loader": "^4.3.0",
+    "fs-extra": "^9.0.1",
+    "js-tokens": "^6.0.0",
+    "mini-css-extract-plugin": "^1.0.0",
+    "mini-svg-data-uri": "^1.2.3",
+    "optimize-css-assets-webpack-plugin": "^5.0.4",
+    "postcss-loader": "^4.0.4",
+    "postcss-preset-env": "^6.7.0",
+    "raw-loader": "^4.0.1",
+    "sass": "^1.27.0",
+    "sass-loader": "^10.0.3",
+    "source-map": "^0.7.3",
+    "terser-webpack-plugin": "^4.2.2",
+    "url-loader": "^4.1.0",
+    "webpack": "^4.44.2"
+  }
+}

@@ -1,0 +1,63 @@
+@import '~@lcooper/sass-utils';
+
+$syntax-js: (
+    'number':    hsl(212, 100%, 39%),
+    'regexp':    hsl(134, 60%, 33%),
+    'string':    hsl(134, 60%, 33%),
+    'comment':   hsl(88, 100%, 31%),
+    'operator':  hsl(27, 76%, 53%),
+    'punctuator':hsl(210, 12%, 16%),
+    'keyword':   hsl(354, 66%, 54%),
+    'identifier':hsl(210, 12%, 16%),
+    'jsx_tag':   hsl(27, 76%, 53%),
+    'jsx_id':    hsl(261, 51%, 51%),
+);
+
+pre.code-block {
+    --line-indent: 3em;
+    margin: 0;
+    padding: 0.5em;
+    border-radius: 0.25rem;
+    overflow-x: auto;
+    font-size: 1em;
+    font-family: inherit;
+    line-height: 1.45;
+    color: inherit;
+    background: hsl(220, 23%, 97%);
+    hyphens: none;
+    white-space: normal;
+
+    @each $type, $color in $syntax-js {
+        span.#{$type} {
+            color: $color;
+        }
+    }
+
+    .invalid {
+        color: #ffffff;
+        background-color: var(--red);
+        font-weight: bold;
+    }
+
+    > li {
+        position: relative;
+        list-style-type: none;
+        white-space: pre;
+        tab-size: 4;
+
+        &::before {
+            content: attr(line);
+            display: inline-block;
+            width: var(--line-indent);
+            text-align: right;
+            padding-right: 0.75em;
+            margin-right: 0.5em;
+            border-right: 2px hsl(0, 0, 67%) solid;
+            color: hsl(0, 0, 60%);
+        }
+
+        &[highlighted] {
+            background-color: hsl(4, 44%, 86%);
+        }
+    }
+}

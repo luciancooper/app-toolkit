@@ -75,12 +75,12 @@ function extractError(webpackError) {
     };
 }
 
-function isEslintError({ originalError: { name } }) {
-    return name === 'ESLintError';
+function isEslintError({ originalError: { name, message } }) {
+    return name === 'ESLintError' && /^lintdata:/.test(message.trim());
 }
 
-function isStylelintError({ name }) {
-    return name === 'StylelintError';
+function isStylelintError({ name, message }) {
+    return name === 'StylelintError' && /^lintdata:/.test(message.trim());
 }
 
 function isModuleNotFoundError({ name, message, webpackError: { dependencies } }) {
@@ -139,153 +139,101 @@ function formatOrigin(origin) {
 }
 
 /**
- * Format module not found errors
- * @param {Object[]} errors - error data objects
- * @returns {string[]} - processed error message chunks
+ * Transform module not found errors
+ * @param {Object[]} errors - extracted error data objects
+ * @returns {Object[]} - transformed module not found error objects
  */
-function formatModuleNotFoundErrors(errors) {
+function transformModuleNotFoundErrors(errors) {
     if (errors.length === 0) return [];
-    let modules = [...new Set(errors.map(({ module }) => module))];
+    // extract module name & error file from each error
+    const data = errors.map((error) => {
+        const { file, webpackError: { dependencies: [dependency] } } = error,
+            module = dependency.request || dependency.options.request;
+        return { module, file };
+    });
+    // create set of unique modules
+    let modules = [...new Set(data.map(({ module }) => module))];
     // sort dependencies before relative import modules
     modules = [
         ...modules.filter((module) => !/^\.{1,2}\//.test(module)),
         ...modules.filter((module) => /^\.{1,2}\//.test(module)),
     ];
-    // create a processed error chunk for each missing module
-    return modules.map((mod) => {
-        const moduleErrors = errors.filter(({ module }) => mod === module),
-            files = moduleErrors
-                .map(({ file }) => file)
-                .filter(Boolean)
-                .map((file) => formatFilepath(file)),
-            filePath = files.length > 2
-                // use oxford comma
-                ? ` in ${files.slice(0, files.length - 1).join(', ')}, and ${files[files.length - 1]}`
-                : files.length
-                    ? ` in ${files.join(' and ')}`
-                    : '';
-        return chalk`{bold Module Not Found:} Can't resolve {bold.blue ${mod}}${filePath}`;
+    // create an error data object for each missing module
+    return modules.map((module) => {
+        const files = data
+            .filter(({ module: m, file }) => (m === module && file))
+            .map(({ file }) => file);
+        return {
+            type: 'module-not-found-error',
+            module,
+            files,
+        };
     });
 }
 
 /**
- * Summarize total error and warning counts
- * @param {Object[]} results - array of lint results for a single file
- * @returns {string} - lint result summary statement
- */
-function lintResultSummary(results) {
-    const fileCount = results.length,
-        // calculate warning & error counts
-        problems = results.flatMap(({ messages }) => messages.map(({ severity }) => severity)),
-        errorCount = problems.filter((s) => s === 2).length,
-        warningCount = problems.length - errorCount,
-        // create errors & warnings summary statement
-        summary = [
-            ...errorCount ? [`${errorCount} error${errorCount > 1 ? 's' : ''}`] : [],
-            ...warningCount ? [`${warningCount} warning${warningCount > 1 ? 's' : ''}`] : [],
-        ].join(' and ');
-    // return statement
-    return `found ${summary} in ${fileCount} file${fileCount > 1 ? 's' : ''}`;
-}
-
-/**
- * Transform lint result data into pretty cli tables
- * @param {Object[]} results - array of lint results for a single file
- * @returns {string[]} - formatted results tables
- */
-function lintResultTables(results, { lineWidth, colWidth, msgWidth }) {
-    // loop through each file result
-    return results
-        .map(({ filePath, messages }) => [
-            chalk.bold.underline(filePath),
-            ...messages.map(({
-                line,
-                column,
-                message,
-                ruleId,
-                severity,
-            }) => {
-                const lPadding = ' '.repeat(lineWidth - line.length),
-                    cPadding = ' '.repeat(colWidth - column.length),
-                    mPadding = ' '.repeat(msgWidth - stripAnsi(message).length);
-                return [
-                    // error or warning symbol
-                    severity === 2 ? chalk.red(' ✖') : chalk.yellow(' ⚠'),
-                    // location
-                    chalk`${lPadding}{dim ${line}{gray :}${column}}${cPadding}`,
-                    // message
-                    message + mPadding,
-                    // rule id
-                    chalk.dim(ruleId),
-                ].join('  ');
-            }),
-        ].join('\n'));
-}
-
-/**
- * Format linting errors
+ * Transform linting errors into a single grouped object
  * @param {Object[]} eslintErrors - eslint error data objects
  * @param {Object[]} stylelintErrors - stylelint error data objects
- * @returns {string[]} - processed error message chunks
+ * @returns {?Object} - a single grouped linting error
  */
-function formatLintErrors(eslintErrors, stylelintErrors) {
-    if (eslintErrors.length + stylelintErrors.length === 0) return [];
-    const eslintData = eslintErrors.flatMap(({ originalError: { message } }) => JSON.parse(message.trim())),
-        stylelintData = stylelintErrors.flatMap(({ message }) => JSON.parse(message.trim())),
-        // find max line, column, and message string width for all linting errors
-        [lineWidth, colWidth, msgWidth] = [...eslintData, ...stylelintData]
-            .flatMap(({ messages }) => messages)
-            .reduce(([l, c, m], { line, column, message }) => [
-                Math.max(l, line.length),
-                Math.max(c, column.length),
-                Math.max(m, stripAnsi(message).length),
-            ], [0, 0, 0]);
-
-    return [
-        ...eslintErrors.length ? [
-            [
-                `ESLint ${lintResultSummary(eslintData)}`,
-                ...lintResultTables(eslintData, { lineWidth, colWidth, msgWidth }),
-            ].join('\n\n'),
-        ] : [],
-        ...stylelintErrors.length ? [
-            [
-                `Stylelint ${lintResultSummary(stylelintData)}`,
-                ...lintResultTables(stylelintData, { lineWidth, colWidth, msgWidth }),
-            ].join('\n\n'),
-        ] : [],
-    ];
+function groupLintErrors(eslintErrors, stylelintErrors) {
+    if (eslintErrors.length + stylelintErrors.length === 0) return null;
+    const eslintData = eslintErrors.flatMap(({ originalError: { message } }) => (
+            JSON.parse(message.trim().replace(/^lintdata:/, ''))
+        )),
+        stylelintData = stylelintErrors.flatMap(({ message }) => (
+            JSON.parse(message.trim().replace(/^lintdata:/, ''))
+        ));
+    return {
+        type: 'lint-errors',
+        linters: [
+            eslintErrors.length ? {
+                linter: 'ESLint',
+                files: eslintData,
+            } : null,
+            stylelintErrors.length ? {
+                linter: 'Stylelint',
+                files: stylelintData,
+            } : null,
+        ].filter(Boolean),
+    };
 }
 
 /**
- * Process errors into formatted chunks
- * @param {Object[]} errors - array of error data objects
- * @returns {string[]} - array of processed error chunks
+ * Extract error data from a webpack stats object
+ * @param {Object} stats - webpack stats object
+ * @param {string} [type='errors'] - 'errors' or 'warnings'
+ * @returns {Object[]} - extracted error or warning data objects
  */
-function processErrors(errors) {
-    const [
-        syntaxErrors,
-        moduleNotFoundErrors,
-        eslintErrors,
-        stylelintErrors,
-        uncategorized,
-    ] = filterChain(errors, [
-        isSyntaxError,
-        isModuleNotFoundError,
-        isEslintError,
-        isStylelintError,
-    ]);
+exports.extract = (stats, type = 'errors') => {
+    const items = extractFromCompilation(stats.compilation, type),
+        errors = items.map((e) => extractError(e)),
+        // group extracted errors into category types
+        [
+            syntaxErrors,
+            moduleNotFoundErrors,
+            eslintErrors,
+            stylelintErrors,
+            uncategorized,
+        ] = filterChain(errors, [
+            isSyntaxError,
+            isModuleNotFoundError,
+            isEslintError,
+            isStylelintError,
+        ]);
 
     return [
-        // format syntax errors
+        // transform syntax errors
         ...syntaxErrors.map(({
             file,
             origin,
             originalError,
-        }) => [
-            file ? `in ${formatFilepath(file)}\n\n` : '\n\n',
+        }) => ({
+            type: 'syntax-error',
+            file,
             // clean up the original error message
-            originalError.toString()
+            message: originalError.toString()
                 // clean up duplicate error titles
                 .replace(/^([\w]+Error): \1: /, '$1: ')
                 // remove syntax error file path
@@ -296,32 +244,24 @@ function processErrors(errors) {
                 .replace(/^\s*at\s<anonymous>(?:\n|$)/gm, '') // at <anonymous>
                 // trim the message
                 .trim(),
-            // format origin trace
-            formatOrigin(origin),
-        ].join('')),
-
-        // format module not found errors
-        ...formatModuleNotFoundErrors(moduleNotFoundErrors.map((error) => {
-            const { webpackError: { dependencies: [dependency] } } = error,
-                module = dependency.request || dependency.options.request;
-            return {
-                ...error,
-                module,
-            };
+            origin,
         })),
 
-        // format linting errors
-        ...formatLintErrors(eslintErrors, stylelintErrors),
+        // transform module not found errors
+        ...transformModuleNotFoundErrors(moduleNotFoundErrors),
 
-        // format uncategorized errors
+        // transform linting errors
+        groupLintErrors(eslintErrors, stylelintErrors),
+
+        // transform uncategorized errors
         ...uncategorized.map(({
             file,
             message,
             origin,
-        }) => [
-            file ? `in ${formatFilepath(file)}\n\n` : '\n\n',
+        }) => ({
+            file,
             // clean up webpack error message
-            message
+            message: message
                 // split lines
                 .split('\n')
                 // strip webpack-added headers
@@ -360,34 +300,108 @@ function processErrors(errors) {
                 .replace(/(?:^[\t\f\v ]*\n){2,}/gm, '\n')
                 // trim the message
                 .trim(),
-            // format origin trace
-            formatOrigin(origin),
-        ].join('')),
-    ];
-}
-
-/**
- * Extract and format all warnings from a webpack stats object
- * @param {Object} stats - webpack stats object
- * @returns {string[]} - readable warnings output chunks
- */
-exports.extractWarnings = (stats) => {
-    const items = extractFromCompilation(stats.compilation, 'warnings'),
-        extracted = items.map((e) => extractError(e)),
-        processed = processErrors(extracted),
-        badge = chalk.yellow.inverse(' WARNING ');
-    return processed.map((chunk) => `\n${badge} ${chunk}\n`);
+            origin,
+        })),
+    ].filter(Boolean);
 };
 
 /**
- * Extract and format all errors from a webpack stats object
- * @param {Object} stats - webpack stats object
- * @returns {string[]} - readable errors output chunks
+ * Transform errors into formatted readable output chunks
+ * @param {Object[]} errors - array of error data objects
+ * @param {string} [messageType='error'] - 'error' or 'warning'
+ * @returns {string[]} - array of readable output chunks
  */
-exports.extractErrors = (stats) => {
-    const items = extractFromCompilation(stats.compilation, 'errors'),
-        extracted = items.map((e) => extractError(e)),
-        processed = processErrors(extracted),
-        badge = chalk.red.inverse(' ERROR ');
-    return processed.map((chunk) => `\n${badge} ${chunk}\n`);
+exports.format = (errors, messageType = 'error') => {
+    const badge = (messageType === 'warning')
+            ? chalk.yellow.inverse(' WARNING ')
+            : chalk.red.inverse(' ERROR '),
+        formatted = [];
+    // loop through each error data object
+    errors.forEach(({ type, ...error }) => {
+        switch (type) {
+            case 'module-not-found-error': {
+                // module not found error
+                const { module, files } = error,
+                    filePath = files.length > 2
+                        // use oxford comma
+                        ? ` in ${files.slice(0, files.length - 1).join(', ')}, and ${files[files.length - 1]}`
+                        : files.length
+                            ? ` in ${files.join(' and ')}`
+                            : '';
+                formatted.push(
+                    chalk`{bold Module Not Found:} Can't resolve {bold.blue ${module}}${filePath}`,
+                );
+                break;
+            }
+            case 'lint-errors': {
+                const { linters } = error,
+                    // find max line, column, and message string width for all linting errors
+                    [lineWidth, colWidth, msgWidth] = linters
+                        .flatMap(({ files }) => files)
+                        .flatMap(({ messages }) => messages)
+                        .reduce(([l, c, m], { line, column, message }) => [
+                            Math.max(l, line.length),
+                            Math.max(c, column.length),
+                            Math.max(m, stripAnsi(message).length),
+                        ], [0, 0, 0]);
+
+                // for each linter, produce a single message chunk
+                formatted.push(...linters.map(({ linter, files }) => {
+                    // summarize total error and warning counts
+                    const fileCount = files.length,
+                        // calculate warning & error counts
+                        problems = files.flatMap(({ messages }) => messages.map(({ severity }) => severity)),
+                        errorCount = problems.filter((s) => s === 2).length,
+                        warningCount = problems.length - errorCount,
+                        // create errors & warnings summary statement
+                        summary = [
+                            errorCount ? `${errorCount} error${errorCount > 1 ? 's' : ''}` : null,
+                            warningCount ? `${warningCount} warning${warningCount > 1 ? 's' : ''}` : null,
+                        ].filter(Boolean).join(' and ');
+
+                    return [
+                        // full summary statement
+                        `${linter} found ${summary} in ${fileCount} file${fileCount > 1 ? 's' : ''}`,
+                        // transform lint result data into pretty cli tables
+                        ...files.map(({ filePath, messages }) => [
+                            chalk.bold.underline(filePath),
+                            ...messages.map(({
+                                line,
+                                column,
+                                message,
+                                ruleId,
+                                severity,
+                            }) => {
+                                const lPadding = ' '.repeat(lineWidth - line.length),
+                                    cPadding = ' '.repeat(colWidth - column.length),
+                                    mPadding = ' '.repeat(msgWidth - stripAnsi(message).length);
+                                return [
+                                    // error or warning symbol
+                                    severity === 2 ? chalk.red(' ✖') : chalk.yellow(' ⚠'),
+                                    // location
+                                    chalk`${lPadding}{dim ${line}{gray :}${column}}${cPadding}`,
+                                    // message
+                                    message + mPadding,
+                                    // rule id
+                                    chalk.dim(ruleId),
+                                ].join('  ');
+                            }),
+                        ].join('\n')),
+                    ].join('\n\n');
+                }));
+                break;
+            }
+            default: {
+                // all other error types
+                const { file, message, origin } = error;
+                formatted.push([
+                    file ? `in ${formatFilepath(file)}\n\n` : '\n\n',
+                    message,
+                    formatOrigin(origin),
+                ].join(''));
+                break;
+            }
+        }
+    });
+    return formatted.map((chunk) => `\n${badge} ${chunk}\n`);
 };

@@ -7,57 +7,43 @@
  */
 
 const hotEmitter = require('webpack/hot/emitter'),
-    stripAnsi = require('../lib/utils/strip-ansi');
+    overlay = require('@lcooper/dev-overlay');
 
 const path = '/__dev-server',
     timeout = 20 * 1000;
 
-let previousProblems = null,
-    isUnloading = false;
-
-function logProblems(type, { name, [type]: problems }) {
-    const newProblems = problems.map((msg) => stripAnsi(msg)).join('\n');
-    // if problems have not changed, do not relog
-    if (previousProblems === newProblems) return;
-    // set new problems
-    previousProblems = newProblems;
-    // console log the problems
-    const { [type]: style } = { errors: 'color:#ff0000', warnings: 'color:#999933' },
-        title = `[dev-server] bundle ${name ? `'${name}' ` : ''} has ${problems.length} ${type}`;
-    if (console.group && console.groupEnd) {
-        console.group(`%c${title}`, style);
-        console.log(`%c${newProblems}`, style);
-        console.groupEnd();
-    } else {
-        console.log(
-            `%c${title}\n\t%c${newProblems.replace(/\n/g, '\n\t')}`,
-            `${style}font-weight:bold;`,
-            `${style}font-weight:normal;`,
-        );
-    }
-}
+let isUnloading = false;
 
 function processMessage({ action, ...data }) {
     // action is either 'building', 'built', or 'sync'
     if (action === 'building') {
         console.log(`[dev-server] bundle ${data.name ? `'${data.name}' ` : ''}rebuilding`);
+        overlay.recompiling();
         return;
     }
     if (action === 'built') {
         console.log(`[dev-server] bundle ${data.name ? `'${data.name}' ` : ''}rebuilt in ${data.time}ms`);
     }
+    // pass data to overlay
+    overlay.setBuildData(data);
+
+    const { name, errors, warnings } = data;
     // check for errors
-    if (data.errors && data.errors.length > 0) {
+    if (errors && errors.length > 0) {
         // report errors and exit, do not apply update
-        logProblems('errors', data);
+        console.error(
+            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has error${errors.length} ${errors.length > 1 ? 's' : ''}`,
+            'color:#ff0000',
+        );
         return;
     }
     // check for warnings
     if (data.warnings && data.warnings.length > 0) {
-        logProblems('warnings', data);
-    } else {
-        // clear cached problems
-        previousProblems = null;
+        // log warnings to console
+        console.warn(
+            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`,
+            'color:#999933',
+        );
     }
     if (isUnloading) return;
     hotEmitter.emit('webpackHotUpdate', data.hash);
@@ -117,4 +103,6 @@ if (typeof window === 'undefined') {
     console.warn('app-scripts dev-server client requires EventSource');
 } else {
     connect();
+    // tell overlay to register runtime error listeners
+    overlay.startReportingRuntimeErrors();
 }

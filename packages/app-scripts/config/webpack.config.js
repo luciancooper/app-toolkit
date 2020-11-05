@@ -1,12 +1,37 @@
 const path = require('path'),
-    fs = require('fs'),
+    globby = require('globby'),
+    { cosmiconfigSync } = require('cosmiconfig'),
     HtmlWebpackPlugin = require('html-webpack-plugin'),
+    ESLintPlugin = require('eslint-webpack-plugin'),
     StylelintPlugin = require('stylelint-webpack-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
-    OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+    OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
+    paths = require('./paths');
 
-const appPath = fs.realpathSync(process.cwd());
+function checkStylelint() {
+    // check for any scss / sass files
+    const files = globby.sync(path.join(paths.src, '**/*.s(a|c)ss'));
+    // if no scss files are found, return false
+    if (!files.length) return false;
+    // create a synchronous cosmiconfig explorer instance and ensure a config exists for each file
+    const explorer = cosmiconfigSync('stylelint');
+    for (let i = 0; i < files.length; i += 1) {
+        if (explorer.search(files[i]) == null) return false;
+    }
+    return true;
+}
+
+function checkJsxRuntime() {
+    try {
+        require.resolve('react/jsx-runtime.js', {
+            paths: [paths.root],
+        });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
 
 module.exports = (mode) => ({
     mode,
@@ -14,10 +39,10 @@ module.exports = (mode) => ({
         ? 'cheap-module-source-map'
         : 'source-map',
     entry: [
-        path.resolve(appPath, 'src/index'),
+        paths.entry,
     ],
     output: {
-        path: path.resolve(appPath, 'dist'),
+        path: paths.dist,
         filename: (mode === 'production')
             ? 'assets/[name].[contenthash:8].js'
             : 'assets/[name].js',
@@ -31,8 +56,25 @@ module.exports = (mode) => ({
         minimizer: [
             new TerserPlugin({
                 sourceMap: true,
+                terserOptions: {
+                    compress: {
+                        warnings: false,
+                        comparisons: false,
+                    },
+                    output: {
+                        comments: false,
+                        ascii_only: false,
+                    },
+                },
+                extractComments: false,
             }),
-            new OptimizeCSSAssetsPlugin(),
+            new OptimizeCSSAssetsPlugin({
+                cssProcessorOptions: {
+                    map: {
+                        inline: false,
+                    },
+                },
+            }),
         ],
         splitChunks: {
             chunks: 'all',
@@ -41,7 +83,7 @@ module.exports = (mode) => ({
     resolve: {
         modules: [
             'node_modules',
-            path.resolve(appPath, 'node_modules'),
+            path.resolve(paths.root, 'node_modules'),
         ],
         extensions: [
             '.mjs',
@@ -52,23 +94,6 @@ module.exports = (mode) => ({
     },
     module: {
         rules: [
-            // eslint-loader
-            {
-                test: /\.(?:js|mjs|jsx)$/,
-                exclude: /node_modules/,
-                enforce: 'pre',
-                use: [
-                    {
-                        loader: require.resolve('eslint-loader'),
-                        options: {
-                            eslintPath: require.resolve('eslint'),
-                            formatter: require.resolve('../lib/eslint-formatter'),
-                            cache: true,
-                            emitWarning: true,
-                        },
-                    },
-                ],
-            },
             {
                 oneOf: [
                     // url-loader
@@ -84,20 +109,62 @@ module.exports = (mode) => ({
                             outputPath: 'assets/static',
                         },
                     },
-                    // process js
+                    // process source js
                     {
                         test: /\.(?:js|mjs|jsx)$/,
-                        exclude: /node_modules/,
+                        include: paths.src,
                         loader: require.resolve('babel-loader'),
                         options: {
                             babelrc: false,
                             configFile: false,
                             presets: [
+                                [require.resolve('@babel/preset-env'), {
+                                    browserslistEnv: mode,
+                                }],
+                                [require.resolve('@babel/preset-react'), {
+                                    runtime: checkJsxRuntime() ? 'automatic' : 'classic',
+                                }],
+                            ],
+                            plugins: [
+                                [
+                                    require.resolve('@babel/plugin-transform-runtime'),
+                                    {
+                                        absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
+                                        // eslint-disable-next-line global-require
+                                        version: require('@babel/runtime/package.json').version,
+                                    },
+                                ],
+                                (mode === 'development') && require.resolve('react-refresh/babel'),
+                            ].filter(Boolean),
+                            cacheDirectory: true,
+                            compact: (mode === 'production'),
+                        },
+                    },
+                    // process external js
+                    {
+                        test: /\.(?:js|mjs)$/,
+                        exclude: /(@babel(?:\/|\\{1,2})runtime)/,
+                        loader: require.resolve('babel-loader'),
+                        options: {
+                            babelrc: false,
+                            configFile: false,
+                            sourceType: 'unambiguous',
+                            presets: [
                                 require.resolve('@babel/preset-env'),
                                 require.resolve('@babel/preset-react'),
                             ],
+                            plugins: [
+                                [
+                                    require.resolve('@babel/plugin-transform-runtime'),
+                                    {
+                                        absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
+                                        // eslint-disable-next-line global-require
+                                        version: require('@babel/runtime/package.json').version,
+                                    },
+                                ],
+                            ],
                             cacheDirectory: true,
-                            compact: (mode === 'production'),
+                            compact: false,
                         },
                     },
                     // process css
@@ -112,6 +179,7 @@ module.exports = (mode) => ({
                                 loader: require.resolve('css-loader'),
                                 options: {
                                     importLoaders: 1,
+                                    sourceMap: true,
                                 },
                             },
                             {
@@ -131,6 +199,7 @@ module.exports = (mode) => ({
                                             ],
                                         ],
                                     },
+                                    sourceMap: true,
                                 },
                             },
                         ],
@@ -147,6 +216,7 @@ module.exports = (mode) => ({
                                 loader: require.resolve('css-loader'),
                                 options: {
                                     importLoaders: 2,
+                                    sourceMap: true,
                                 },
                             },
                             {
@@ -166,6 +236,7 @@ module.exports = (mode) => ({
                                             ],
                                         ],
                                     },
+                                    sourceMap: true,
                                 },
                             },
                             {
@@ -173,6 +244,7 @@ module.exports = (mode) => ({
                                 options: {
                                     // eslint-disable-next-line global-require
                                     implementation: require('sass'),
+                                    sourceMap: true,
                                 },
                             },
                         ],
@@ -200,7 +272,7 @@ module.exports = (mode) => ({
         // Generates `index.html` with the <script> injected.
         new HtmlWebpackPlugin({
             inject: true,
-            template: path.resolve(appPath, 'src/index.html'),
+            template: paths.html,
             ...((mode === 'production') ? {
                 minify: {
                     removeComments: true,
@@ -216,14 +288,24 @@ module.exports = (mode) => ({
                 },
             } : {}),
         }),
-        // Applies stylelint to all sass code
-        new StylelintPlugin({
-            stylelintPath: require.resolve('stylelint'),
-            files: '**/*.s(a|c)ss',
+        // Apply eslint to all js code
+        new ESLintPlugin({
+            context: paths.src,
+            extensions: ['js', 'mjs', 'jsx'],
+            eslintPath: require.resolve('eslint'),
+            formatter: require.resolve('../lib/eslint-formatter'),
             emitWarning: true,
-            // eslint-disable-next-line global-require
-            formatter: require('../lib/stylelint-formatter'),
         }),
+        // Applies stylelint to all sass code
+        ...checkStylelint() ? [
+            new StylelintPlugin({
+                stylelintPath: require.resolve('stylelint'),
+                files: '**/*.s(a|c)ss',
+                emitWarning: true,
+                // eslint-disable-next-line global-require
+                formatter: require('../lib/stylelint-formatter'),
+            }),
+        ] : [],
         // production plugins
         ...(mode === 'production') ? [
             new MiniCssExtractPlugin({

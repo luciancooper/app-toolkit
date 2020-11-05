@@ -1,0 +1,21 @@
+@import '~@lcooper/sass-utils';
+
+:root {
+    --text: #{hsl(0, 0%, 91%)};
+    --text-dark: #{hsl(210, 12%, 16%)};
+    --text-dim: #{hsl(198, 4%, 55%)};
+    --red: #{hsl(354, 75%, 51%)};
+    --yellow: #{hsl(46, 71%, 68%)};
+    --purple: #{hsl(300, 50%, 50%)};
+    --blue: #{hsl(200, 50%, 50%)};
+}
+
+.overlay-root {
+    @include size(100%);
+    @include flex(column, $align: center);
+    box-sizing: border-box;
+    padding: 1rem;
+    font-family: monospace;
+    background-color: hsla(0, 0%, 0%, 0.85);
+    color: var(--text);
+}

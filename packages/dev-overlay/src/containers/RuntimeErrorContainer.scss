@@ -1,0 +1,107 @@
+@import '~@lcooper/sass-utils';
+
+.runtime-errors {
+    @include flex(column);
+    min-width: 50%;
+    height: 100%;
+    position: relative;
+    border-radius: 0.25em;
+    color: var(--text-dark);
+    background-color: hsl(0, 0%, 100%);
+    box-shadow: 0 0 3px 1px hsl(0, 0%, 75%);
+
+    > .runtime-error-container {
+        @include flex(column);
+        flex-grow: 1;
+        overflow: auto;
+    }
+
+    .close-button {
+        --background: transparent;
+        @include position(absolute, $top: 0, $right: 0);
+        @include flex(row, $align: center, $justify: center);
+        margin: 0.25em 0.25em 0 0;
+        padding: 0.2em;
+        border-radius: 0.25em;
+        background: var(--background);
+        cursor: pointer;
+        z-index: 1000;
+
+        &:not(:active):hover {
+            --background: #{hsl(0, 0%, 92%)};
+        }
+
+        &:active {
+            --background: #{hsl(0, 0%, 84%)};
+        }
+
+        &::before {
+            @include size(1.5em);
+            content: '';
+            display: block;
+            background-size: 100%;
+            background-position: 50%;
+            background-origin: border-box;
+            background-repeat: no-repeat;
+            background-image: url('../assets/close.svg');
+            filter: invert(30%);
+        }
+    }
+
+    .runtime-errors-header {
+        @include flex(row, $justify: center);
+        padding: 0.5em 1em;
+
+        > .error-pagination {
+            @include flex(row);
+
+            > * {
+                padding: 0.2em 0.5em;
+                line-height: 1;
+            }
+
+            > .arrow-btn {
+                --background: transparent;
+                @include flex(row, $align: center, $justify: center);
+                appearance: none;
+                border: none;
+                outline: none;
+                border-radius: 0.25em;
+                background: var(--background);
+                cursor: pointer;
+
+                &:disabled {
+                    opacity: 0.5;
+                    cursor: default;
+                }
+
+                &:not(:disabled):not(:active):hover {
+                    --background: #{hsl(0, 0%, 92%)};
+                }
+
+                &:active {
+                    --background: #{hsl(0, 0%, 84%)};
+                }
+
+                &::before {
+                    @include size(1em);
+                    content: '';
+                    display: block;
+                    background-size: 100%;
+                    background-position: 50%;
+                    background-origin: border-box;
+                    background-repeat: no-repeat;
+                    filter: invert(30%);
+                }
+
+                &.left::before {
+                    background-image: url('../assets/arrow-left.svg');
+                }
+
+                &.right::before {
+                    background-image: url('../assets/arrow-right.svg');
+                }
+            }
+        }
+    }
+}

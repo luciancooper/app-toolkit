@@ -5,9 +5,9 @@ module.exports = (results, returnValue) => {
     // count total errors and warnings
     const problems = results.flatMap(({ warnings = [], ignored = false }) => (ignored ? [] : warnings)).length;
     // check for no errors and warnings
-    if (problems === 0) return '[]';
+    if (problems === 0) return 'lintdata:[]';
     // transform results data and stringify
-    return JSON.stringify(
+    const json = JSON.stringify(
         results
             .filter(({ warnings = [], ignored = false }) => !ignored && warnings.length)
             .map(({ source, warnings }) => ({
@@ -21,8 +21,8 @@ module.exports = (results, returnValue) => {
                     severity,
                     text = '',
                 }) => ({
-                    line: String(line),
-                    column: String(column),
+                    line: (line != null && !Number.isNaN(line)) ? String(line) : '0',
+                    column: (column != null && !Number.isNaN(column)) ? String(column) : '0',
                     message: text
                         // remove rule id from message
                         .replace(/\s\(.+\)$/g, '')
@@ -33,4 +33,5 @@ module.exports = (results, returnValue) => {
                 })),
             })),
     );
+    return `lintdata:${json}`;
 };

@@ -1,6 +1,6 @@
 {
   "name": "@lcooper/app-scripts",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Configuration and scripts for js web apps",
   "main": "index.js",
   "bin": {

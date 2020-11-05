@@ -7,7 +7,7 @@
     "app-scripts": "./bin/app-scripts.js"
   },
   "files": [
-    "middelware.js",
+    "middleware.js",
     "bin",
     "client",
     "config",

@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "description": "A development overlay for displaying errors and warnings in the browser",
   "main": "dist/index.js",
+  "files": [
+    "dist/index.js"
+  ],
   "scripts": {
     "build": "node tasks/build.js",
     "watch": "node tasks/build.js --watch"

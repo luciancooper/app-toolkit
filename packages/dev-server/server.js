@@ -6,8 +6,8 @@
 const http = require('http'),
     express = require('express'),
     openBrowser = require('better-opn'),
-    middleware = require('./dev-middleware'),
-    choosePort = require('./utils/choose-port');
+    middleware = require('./middleware'),
+    choosePort = require('./lib/choose-port');
 
 module.exports = class {
     constructor(config, options = {}) {

@@ -7,10 +7,9 @@ const express = require('express'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
-    ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
     webpackMessages = require('@lcooper/webpack-messages'),
-    clearConsole = require('./utils/clear-console'),
-    prependEntry = require('./utils/prepend-entry');
+    clearConsole = require('./lib/clear-console'),
+    prependEntry = require('./lib/prepend-entry');
 
 function extractStats(stats) {
     const { hash, startTime, endTime } = stats,
@@ -43,7 +42,7 @@ module.exports = (config, {
 } = {}) => {
     // inject client entries into the config
     config.entry = prependEntry(config.entry, [
-        require.resolve('../client/entry'),
+        require.resolve('./client/entry'),
         require.resolve('webpack/hot/dev-server'),
     ]);
     // inject development plugins into the config
@@ -52,14 +51,6 @@ module.exports = (config, {
     if (!config.plugins.some((plugin) => plugin.constructor.name === 'HotModuleReplacementPlugin')) {
         config.plugins.push(
             new webpack.HotModuleReplacementPlugin(),
-        );
-    }
-    // inject ReactRefreshPlugin into the config if it doesnt already exist
-    if (!config.plugins.some((plugin) => plugin.constructor.name === 'ReactRefreshPlugin')) {
-        config.plugins.push(
-            new ReactRefreshPlugin({
-                overlay: false,
-            }),
         );
     }
 

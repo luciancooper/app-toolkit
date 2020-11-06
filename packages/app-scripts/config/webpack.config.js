@@ -7,6 +7,7 @@ const path = require('path'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
+    ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
     paths = require('./paths');
 
 function checkStylelint() {
@@ -304,6 +305,12 @@ module.exports = (mode) => ({
                 emitWarning: true,
                 // eslint-disable-next-line global-require
                 formatter: require('@lcooper/webpack-messages/stylelint-formatter'),
+            }),
+        ] : [],
+        // development plugins
+        ...(mode === 'development') ? [
+            new ReactRefreshPlugin({
+                overlay: false,
             }),
         ] : [],
         // production plugins

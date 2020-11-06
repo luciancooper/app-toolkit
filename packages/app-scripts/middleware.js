@@ -1,7 +1,7 @@
 const chalk = require('chalk'),
-    checkRequiredFiles = require('./lib/utils/check-required-files'),
-    checkBrowsers = require('./lib/utils/check-browsers'),
-    middleware = require('./lib/dev-middleware'),
+    middleware = require('@lcooper/dev-server/middleware'),
+    checkRequiredFiles = require('./lib/check-required-files'),
+    checkBrowsers = require('./lib/check-browsers'),
     paths = require('./config/paths'),
     configFactory = require('./config/webpack.config');
 

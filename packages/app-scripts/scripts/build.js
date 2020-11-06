@@ -2,8 +2,8 @@ const fs = require('fs-extra'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     webpackMessages = require('@lcooper/webpack-messages'),
-    checkRequiredFiles = require('../lib/utils/check-required-files'),
-    checkBrowsers = require('../lib/utils/check-browsers'),
+    checkRequiredFiles = require('../lib/check-required-files'),
+    checkBrowsers = require('../lib/check-browsers'),
     paths = require('../config/paths'),
     configFactory = require('../config/webpack.config');
 

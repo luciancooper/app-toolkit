@@ -32,13 +32,13 @@ function processMessage({ action, ...data }) {
     if (errors && errors.length > 0) {
         // report errors and exit, do not apply update
         console.error(
-            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has error${errors.length} ${errors.length > 1 ? 's' : ''}`,
+            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${errors.length} error${errors.length > 1 ? 's' : ''}`,
             'color:#ff0000',
         );
         return;
     }
     // check for warnings
-    if (data.warnings && data.warnings.length > 0) {
+    if (warnings && warnings.length > 0) {
         // log warnings to console
         console.warn(
             `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`,
@@ -100,7 +100,7 @@ function connect() {
 if (typeof window === 'undefined') {
     // do nothing
 } else if (typeof window.EventSource === 'undefined') {
-    console.warn('app-scripts dev-server client requires EventSource');
+    console.warn('dev-server client requires EventSource');
 } else {
     connect();
     // tell overlay to register runtime error listeners

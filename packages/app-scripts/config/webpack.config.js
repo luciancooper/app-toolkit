@@ -293,7 +293,7 @@ module.exports = (mode) => ({
             context: paths.src,
             extensions: ['js', 'mjs', 'jsx'],
             eslintPath: require.resolve('eslint'),
-            formatter: require.resolve('../lib/eslint-formatter'),
+            formatter: require.resolve('@lcooper/webpack-messages/eslint-formatter'),
             emitWarning: true,
         }),
         // Applies stylelint to all sass code
@@ -303,7 +303,7 @@ module.exports = (mode) => ({
                 files: '**/*.s(a|c)ss',
                 emitWarning: true,
                 // eslint-disable-next-line global-require
-                formatter: require('../lib/stylelint-formatter'),
+                formatter: require('@lcooper/webpack-messages/stylelint-formatter'),
             }),
         ] : [],
         // production plugins

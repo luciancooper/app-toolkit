@@ -1,11 +1,9 @@
-const chalk = require('chalk'),
-    RequestShortener = require('webpack/lib/RequestShortener'),
-    stripAnsi = require('./utils/strip-ansi');
+const RequestShortener = require('webpack/lib/RequestShortener');
 
 const requestShortener = new RequestShortener(process.cwd());
 
 /**
- * Extract errors or warnings from stats compilation
+ * Extract errors / warnings from stats compilation
  * @param {Object} compilation - webpack compilation object
  * @param {string} [type='errors'] - 'errors' or 'warnings'
  */
@@ -112,33 +110,6 @@ function filterChain(errors, filters) {
 }
 
 /**
- * Format file path
- * @param {string} file - a file path
- * @returns {string} - formatted file path
- */
-function formatFilepath(file) {
-    const split = file.lastIndexOf('!');
-    return split !== 1
-        ? chalk.dim(file.slice(0, split + 1)) + chalk.bold(file.slice(split + 1))
-        : chalk.bold(file);
-}
-
-/**
- * Format error origin trace
- * @param {Object[]} origin - array of origin identifiers and location strings
- * @returns {string} - formatted origin output
- */
-function formatOrigin(origin) {
-    let formatted = origin.map(({ id, loc = [] }) => (
-        chalk`\n {bold.gray @} ${id}{dim ${loc.map((l) => ` ${l}`).join('')}}`
-    )).join('');
-    if (formatted) {
-        formatted = `\n${formatted}`;
-    }
-    return formatted;
-}
-
-/**
  * Transform module not found errors
  * @param {Object[]} errors - extracted error data objects
  * @returns {Object[]} - transformed module not found error objects
@@ -201,14 +172,12 @@ function groupLintErrors(eslintErrors, stylelintErrors) {
 }
 
 /**
- * Extract error data from a webpack stats object
- * @param {Object} stats - webpack stats object
- * @param {string} [type='errors'] - 'errors' or 'warnings'
- * @returns {Object[]} - extracted error or warning data objects
+ * Transform a set of webpack errors
+ * @param {WebpackError[]} webpackErrors - array of webpack errors
+ * @returns {Object[]} - extracted error data objects
  */
-exports.extract = (stats, type = 'errors') => {
-    const items = extractFromCompilation(stats.compilation, type),
-        errors = items.map((e) => extractError(e)),
+function transformErrors(webpackErrors) {
+    const errors = webpackErrors.map((e) => extractError(e)),
         // group extracted errors into category types
         [
             syntaxErrors,
@@ -222,7 +191,6 @@ exports.extract = (stats, type = 'errors') => {
             isEslintError,
             isStylelintError,
         ]);
-
     return [
         // transform syntax errors
         ...syntaxErrors.map(({
@@ -303,105 +271,28 @@ exports.extract = (stats, type = 'errors') => {
             origin,
         })),
     ].filter(Boolean);
-};
+}
 
 /**
- * Transform errors into formatted readable output chunks
- * @param {Object[]} errors - array of error data objects
- * @param {string} [messageType='error'] - 'error' or 'warning'
- * @returns {string[]} - array of readable output chunks
+ * Extract error / warning data from a webpack stats object
+ * @param {Object} stats - webpack stats object
+ * @returns {Object} - extracted error & warning data
  */
-exports.format = (errors, messageType = 'error') => {
-    const badge = (messageType === 'warning')
-            ? chalk.yellow.inverse(' WARNING ')
-            : chalk.red.inverse(' ERROR '),
-        formatted = [];
-    // loop through each error data object
-    errors.forEach(({ type, ...error }) => {
-        switch (type) {
-            case 'module-not-found-error': {
-                // module not found error
-                const { module, files } = error,
-                    filePath = files.length > 2
-                        // use oxford comma
-                        ? ` in ${files.slice(0, files.length - 1).join(', ')}, and ${files[files.length - 1]}`
-                        : files.length
-                            ? ` in ${files.join(' and ')}`
-                            : '';
-                formatted.push(
-                    chalk`{bold Module Not Found:} Can't resolve {bold.blue ${module}}${filePath}`,
-                );
-                break;
-            }
-            case 'lint-errors': {
-                const { linters } = error,
-                    // find max line, column, and message string width for all linting errors
-                    [lineWidth, colWidth, msgWidth] = linters
-                        .flatMap(({ files }) => files)
-                        .flatMap(({ messages }) => messages)
-                        .reduce(([l, c, m], { line, column, message }) => [
-                            Math.max(l, line.length),
-                            Math.max(c, column.length),
-                            Math.max(m, stripAnsi(message).length),
-                        ], [0, 0, 0]);
-
-                // for each linter, produce a single message chunk
-                formatted.push(...linters.map(({ linter, files }) => {
-                    // summarize total error and warning counts
-                    const fileCount = files.length,
-                        // calculate warning & error counts
-                        problems = files.flatMap(({ messages }) => messages.map(({ severity }) => severity)),
-                        errorCount = problems.filter((s) => s === 2).length,
-                        warningCount = problems.length - errorCount,
-                        // create errors & warnings summary statement
-                        summary = [
-                            errorCount ? `${errorCount} error${errorCount > 1 ? 's' : ''}` : null,
-                            warningCount ? `${warningCount} warning${warningCount > 1 ? 's' : ''}` : null,
-                        ].filter(Boolean).join(' and ');
-
-                    return [
-                        // full summary statement
-                        `${linter} found ${summary} in ${fileCount} file${fileCount > 1 ? 's' : ''}`,
-                        // transform lint result data into pretty cli tables
-                        ...files.map(({ filePath, messages }) => [
-                            chalk.bold.underline(filePath),
-                            ...messages.map(({
-                                line,
-                                column,
-                                message,
-                                ruleId,
-                                severity,
-                            }) => {
-                                const lPadding = ' '.repeat(lineWidth - line.length),
-                                    cPadding = ' '.repeat(colWidth - column.length),
-                                    mPadding = ' '.repeat(msgWidth - stripAnsi(message).length);
-                                return [
-                                    // error or warning symbol
-                                    severity === 2 ? chalk.red(' ✖') : chalk.yellow(' ⚠'),
-                                    // location
-                                    chalk`${lPadding}{dim ${line}{gray :}${column}}${cPadding}`,
-                                    // message
-                                    message + mPadding,
-                                    // rule id
-                                    chalk.dim(ruleId),
-                                ].join('  ');
-                            }),
-                        ].join('\n')),
-                    ].join('\n\n');
-                }));
-                break;
-            }
-            default: {
-                // all other error types
-                const { file, message, origin } = error;
-                formatted.push([
-                    file ? `in ${formatFilepath(file)}\n\n` : '\n\n',
-                    message,
-                    formatOrigin(origin),
-                ].join(''));
-                break;
-            }
-        }
-    });
-    return formatted.map((chunk) => `\n${badge} ${chunk}\n`);
+module.exports = (stats) => {
+    let errors = [],
+        warnings = [];
+    // check for errors or warnings
+    if (stats.hasErrors()) {
+        errors = transformErrors(
+            extractFromCompilation(stats.compilation, 'errors'),
+        );
+    } else if (stats.hasWarnings()) {
+        warnings = transformErrors(
+            extractFromCompilation(stats.compilation, 'warnings'),
+        );
+    }
+    return {
+        errors,
+        warnings,
+    };
 };

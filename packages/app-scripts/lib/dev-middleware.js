@@ -8,22 +8,16 @@ const express = require('express'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
+    webpackMessages = require('@lcooper/webpack-messages'),
     clearConsole = require('./utils/clear-console'),
-    prependEntry = require('./utils/prepend-entry'),
-    errorFormatter = require('./format-errors');
+    prependEntry = require('./utils/prepend-entry');
 
 function extractStats(stats) {
     const { hash, startTime, endTime } = stats,
         time = endTime - startTime,
-        name = stats.name || (stats.compilation && stats.compilation.name) || '';
-    // extract errors & warnings
-    let errors = [],
-        warnings = [];
-    if (stats.hasErrors()) {
-        errors = errorFormatter.extract(stats, 'errors');
-    } else if (stats.hasWarnings()) {
-        warnings = errorFormatter.extract(stats, 'warnings');
-    }
+        name = stats.name || (stats.compilation && stats.compilation.name) || '',
+        // extract errors & warnings
+        { errors, warnings } = webpackMessages.extract(stats);
     return {
         name,
         time,
@@ -128,13 +122,12 @@ module.exports = (config, {
         const extracted = extractStats(stats);
         // Keep hold of latest stats so they can be propagated to new clients
         latestStats = extracted;
-        // log errors / warnings / successful compile
-        if (extracted.errors.length) {
-            console.log(chalk.bold.red('Failed to compile.'));
-            console.log(errorFormatter.format(extracted.errors, 'error').join(''));
-        } else if (extracted.warnings.length) {
-            console.log(chalk.bold.yellow('Compiled with warnings.'));
-            console.log(errorFormatter.format(extracted.warnings, 'warning').join(''));
+        // format extracted errors / warnings
+        const { errors, warnings } = webpackMessages.format(extracted);
+        if (errors.length) {
+            console.log(chalk`{bold.red Failed to compile.}\n${errors.join('')}`);
+        } else if (warnings.length) {
+            console.log(chalk`{bold.yellow Compiled with warnings.}\n${warnings.join('')}`);
         } else {
             console.log(chalk.bold.green('Compiled successfully!'));
         }

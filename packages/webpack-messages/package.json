@@ -1,0 +1,41 @@
+{
+  "name": "@lcooper/webpack-messages",
+  "version": "0.0.0",
+  "description": "Webpack error and warning message formatter",
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "lib",
+    "eslint-formatter.js",
+    "stylelint-formatter.js"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luciancooper/app-toolkit.git",
+    "directory": "packages/webpack-messages"
+  },
+  "keywords": [
+    "webpack",
+    "messages",
+    "error",
+    "warning"
+  ],
+  "author": "Lucian Cooper <cooperlucian@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/luciancooper/app-toolkit/issues"
+  },
+  "homepage": "https://github.com/luciancooper/app-toolkit/packages/webpack-messages#readme",
+  "dependencies": {
+    "chalk": "^4.1.0"
+  },
+  "peerDependencies": {
+    "webpack": "4.x.x"
+  }
+}

@@ -4,6 +4,7 @@ const path = require('path'),
     chalk = require('chalk'),
     chokidar = require('chokidar'),
     webpack = require('webpack'),
+    webpackMessages = require('@lcooper/webpack-messages'),
     overlayConfig = require('../webpack.config.overlay'),
     config = require('../webpack.config');
 
@@ -22,21 +23,20 @@ function compile(webpackConfig) {
                 // reject promise
                 return void reject(err);
             }
+            // format webpack error / warning messages
+            const { errors, warnings } = webpackMessages(stats);
             // check for errors
-            if (stats.hasErrors()) {
+            if (errors.length) {
                 // log errors
-                const { errors } = stats.toJson({ all: false, errors: true });
-                console.log(chalk`{bold.red Failed to compile} {cyan ${filename}}\n`);
-                console.log(errors.join('\n\n'));
+                console.log(chalk`{bold.red Failed to compile.} {cyan ${filename}}\n${errors.join('')}`);
                 // reject promise
                 return void reject(new Error(`Failed to compile '${filename}'`));
             }
             // check for warnings
-            if (stats.hasWarnings()) {
+            if (warnings.length) {
                 // log warnings
-                const { warnings } = stats.toJson({ all: false, warnings: true });
-                console.log(chalk`{cyan ${filename}} {bold.yellow compiled with ${warnings.length} warning${warnings.length > 1 ? 's' : ''}}\n`);
-                console.log(warnings.join('\n\n'));
+                console.log(chalk`{cyan ${filename}} {bold.yellow compiled with ${warnings.length} warning${warnings.length > 1 ? 's' : ''}}`);
+                console.log(warnings.join(''));
             } else {
                 console.log(chalk`{cyan ${filename}} {bold.green compiled successfully}`);
             }

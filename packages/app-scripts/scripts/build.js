@@ -1,9 +1,9 @@
 const fs = require('fs-extra'),
     chalk = require('chalk'),
     webpack = require('webpack'),
+    webpackMessages = require('@lcooper/webpack-messages'),
     checkRequiredFiles = require('../lib/utils/check-required-files'),
     checkBrowsers = require('../lib/utils/check-browsers'),
-    errorFormatter = require('../lib/format-errors'),
     paths = require('../config/paths'),
     configFactory = require('../config/webpack.config');
 
@@ -65,20 +65,18 @@ compiler.run((err, stats) => {
         console.log(chalk`{bold.red Failed to compile.}\n\n${message}\n`);
         process.exit(1);
     }
+    // format webpack error / warning messages
+    const { errors, warnings } = webpackMessages(stats);
     // check for errors
-    if (stats.hasErrors()) {
-        console.log(chalk.bold.red('Failed to compile.'));
+    if (errors.length) {
         // log errors and exit
-        const errors = errorFormatter.extract(stats, 'errors');
-        console.log(errorFormatter.format(errors, 'error').join(''));
+        console.log(chalk`{bold.red Failed to compile.}\n${errors.join('')}`);
         process.exit(1);
     }
     // check for warnings
-    if (stats.hasWarnings()) {
-        console.log(chalk.bold.yellow('Compiled with warnings.'));
+    if (warnings.length) {
         // log warnings
-        const warnings = errorFormatter.extract(stats, 'warnings');
-        console.log(errorFormatter.format(warnings, 'warning').join(''));
+        console.log(chalk`{bold.yellow Compiled with warnings.}\n${warnings.join('')}`);
     } else {
         console.log(chalk.bold.green('Compiled successfully.'));
     }

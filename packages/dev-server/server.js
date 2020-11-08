@@ -5,6 +5,7 @@
 
 const http = require('http'),
     express = require('express'),
+    killable = require('killable'),
     openBrowser = require('better-opn'),
     middleware = require('./middleware'),
     choosePort = require('./lib/choose-port');
@@ -28,18 +29,7 @@ module.exports = class {
             });
         });
 
-        // create array to store sockets
-        this.sockets = [];
-        // track socket connections
-        this.server.on('connection', (socket) => {
-            // add socket to array
-            this.sockets.push(socket);
-            // add close handler
-            socket.once('close', () => {
-                // remove socket from list
-                this.sockets.splice(this.sockets.indexOf(socket), 1);
-            });
-        });
+        killable(this.server);
     }
 
     async listen(port) {
@@ -53,14 +43,8 @@ module.exports = class {
     close(cb) {
         // close dev middleware
         this.middleware.close(() => {
-            // destroy all sockets
-            this.sockets.forEach((socket) => {
-                socket.destroy();
-            });
-            // reset socket array
-            this.sockets = [];
-            // close listening app
-            this.server.close(cb || (() => {}));
+            // destroy all sockets & close server
+            this.server.kill(cb);
         });
     }
 };

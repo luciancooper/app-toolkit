@@ -37,6 +37,7 @@
     "better-opn": "^2.0.0",
     "chalk": "^4.1.0",
     "express": "^4.17.1",
+    "killable": "^1.0.1",
     "portfinder": "^1.0.28",
     "webpack-dev-middleware": "^3.7.2"
   },

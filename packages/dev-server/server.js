@@ -11,6 +11,11 @@ const http = require('http'),
     choosePort = require('./lib/choose-port');
 
 module.exports = class {
+    /**
+     * Create a new dev server instance
+     * @param {Object} config - webpack config
+     * @param {Object} options - dev server options
+     */
     constructor(config, options = {}) {
         // create dev-middleware
         this.middleware = middleware(config, options);
@@ -32,14 +37,27 @@ module.exports = class {
         killable(this.server);
     }
 
-    async listen(port) {
+    /**
+     * Instruct the server to start listening for connections
+     * @param {Object} options - options object
+     * @param {number} [options.port=3000] - target port to listen on
+     * @param {boolean} [options.open=true] - open browser on server start
+     * @param {Function} cb - function to call when server starts listening
+     */
+    async listen({ port = 3000, open = true }, cb) {
         const openPort = await choosePort(port);
         this.server.listen(openPort, () => {
+            // execute callback
+            if (cb) cb(openPort);
             // open app in browser
-            openBrowser(`http://localhost:${openPort}`);
+            if (open) openBrowser(`http://localhost:${openPort}`);
         });
     }
 
+    /**
+     * Shut down the server and stop watching for file changes
+     * @param {Function} cb - function to call when server has been closed
+     */
     close(cb) {
         // close dev middleware
         this.middleware.close(() => {

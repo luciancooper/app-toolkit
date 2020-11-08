@@ -44,7 +44,7 @@ const devServer = new DevServer(config, {
 });
 
 // launch the dev server
-devServer.listen(port);
+devServer.listen({ port });
 
 // shutdown gracefully on SIGINT & SIGTERM signals
 ['SIGINT', 'SIGTERM'].forEach((signal) => {

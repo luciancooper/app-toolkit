@@ -3,7 +3,7 @@
 [![npm][npm-badge]][npm-link]
 [![license][license-badge]][license-link]
 
-An error overlay that displays build and runtime errors. Used by [`@lcooper/app-scripts`](https://www.npmjs.com/package/@lcooper/app-scripts). 
+An error overlay that displays build and runtime errors in the browser. Used by [`@lcooper/dev-server`](https://www.npmjs.com/package/@lcooper/dev-server).
 
 ## Related
 

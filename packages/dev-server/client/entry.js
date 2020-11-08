@@ -1,5 +1,6 @@
 /* eslint-env browser */
 /* eslint-disable no-use-before-define */
+/* global __resourceQuery */
 
 /**
  * @file
@@ -9,8 +10,28 @@
 const hotEmitter = require('webpack/hot/emitter'),
     overlay = require('@lcooper/dev-overlay');
 
-const path = '/__dev-server',
-    timeout = 20 * 1000;
+const {
+    path = '/__dev-server',
+    timeout = 20 * 1000,
+} = (typeof __resourceQuery === 'string' && __resourceQuery.trim().replace(/^\?/, ''))
+    ? __resourceQuery.trim().replace(/^\?/, '').split('&').reduce((acc, param) => {
+        const qs = param.replace(/\+/g, '%20'),
+            idx = qs.indexOf('=');
+        // split key & value
+        let [key, value] = (idx >= 0) ? [qs.slice(0, idx), qs.slice(idx + 1)] : [qs, ''];
+        // decode uris
+        [key, value] = [decodeURIComponent(key), decodeURIComponent(value)];
+        // parse value string
+        try {
+            value = JSON.parse(value);
+        } catch (e) {
+            // ignore
+        }
+        // assign key value to accumulator
+        acc[key] = Object.hasOwnProperty.call(acc, key) ? [].concat(acc[key], value) : value;
+        return acc;
+    }, {})
+    : {};
 
 let isUnloading = false;
 

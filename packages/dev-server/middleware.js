@@ -42,7 +42,7 @@ module.exports = (config, {
 } = {}) => {
     // inject client entries into the config
     config.entry = prependEntry(config.entry, [
-        require.resolve('./client/entry'),
+        `${require.resolve('./client/entry')}?path=${path}&timeout=${heartbeat * 2}`,
         require.resolve('webpack/hot/dev-server'),
     ]);
     // inject development plugins into the config

@@ -7,7 +7,7 @@
 
 | Package                                                  | Version                                                 | Description                                          |
 |:---------------------------------------------------------|:--------------------------------------------------------|:-----------------------------------------------------|
-| [`@lcooper/create-app`](packages/create-app)             | [![npm][create-app-badge]][create-app-link]             | Tool for generating single page React applications   |
+| [`@lcooper/create-app`](packages/create-app)             | [![npm][create-app-badge]][create-app-link]             | Tool for creating React applications                 |
 | [`@lcooper/app-scripts`](packages/app-scripts)           | [![npm][app-scripts-badge]][app-scripts-link]           | App scripts and configuration                        |
 | [`@lcooper/webpack-messages`](packages/webpack-messages) | [![npm][webpack-messages-badge]][webpack-messages-link] | Webpack error and warning message formatter          |
 | [`@lcooper/dev-server`](packages/dev-server)             | [![npm][dev-server-badge]][dev-server-link]             | Webpack development server with HMR                  |

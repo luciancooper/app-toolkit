@@ -3,7 +3,7 @@
 [![npm][npm-badge]][npm-link]
 [![license][license-badge]][license-link]
 
-A tool to generate single page React apps with no configuration. Inspired by [create-react-app](https://github.com/facebookincubator/create-react-app)
+A tool to generate React apps with no configuration. Inspired by [create-react-app](https://github.com/facebookincubator/create-react-app)
 
 ## Usage
 
@@ -42,6 +42,13 @@ new-app
     ├── index.js
     └── index.scss
 ```
+
+If a single page appliation meets your needs, get started by editing:
+
+ * `src/index.js` - the javascript entry point for your app
+ * `src/index.html` - the page template for your app
+
+To configure a multi page application, you'll have to edit the `app.config.js` file. More information can be found [here](https://github.com/luciancooper/app-toolkit/tree/master/packages/app-scripts#configuration).
 
 ## Scripts
 

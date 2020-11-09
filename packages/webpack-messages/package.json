@@ -31,7 +31,7 @@
   "bugs": {
     "url": "https://github.com/luciancooper/app-toolkit/issues"
   },
-  "homepage": "https://github.com/luciancooper/app-toolkit/packages/webpack-messages#readme",
+  "homepage": "https://github.com/luciancooper/app-toolkit/tree/master/packages/webpack-messages#readme",
   "dependencies": {
     "chalk": "^4.1.0"
   },

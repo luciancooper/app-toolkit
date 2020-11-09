@@ -72,6 +72,41 @@ server.on('error', closeMiddlware);
 process.on('SIGINT', closeMiddlware);
 ```
 
+### Integration with `react-refresh`
+
+Fast refresh can be integrated using [`@pmmmwh/react-refresh-webpack-plugin`](https://github.com/pmmmwh/react-refresh-webpack-plugin). Add the following to your webpack config:
+
+```js
+const ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
+
+module.exports = {
+    // ... other webpack config options ...
+    module: {
+        rules: [
+            // ... other rules ...
+            {
+                test: /\.(?:js|mjs|jsx|ts|tsx)$/,
+                exclude: /node_modules/,
+                loader: 'babel-loader',
+                options: {
+                    // ... other babel options ...
+                    plugins: [
+                        // ... other babel plugins ...
+                        'react-refresh/babel',
+                    ],
+                },
+            },
+        ],
+    },
+    plugins: [
+        // ... other plugins ...
+        new ReactRefreshPlugin({
+            overlay: false, // disable overlay (this is required)
+        }),
+    ],
+};
+```
+
 ## API
 
 ### `new DevServer(config, [options])`

@@ -8,7 +8,8 @@ const path = require('path'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
-    paths = require('./paths');
+    paths = require('./paths'),
+    { target, pages } = require('./app.config');
 
 function checkStylelint() {
     // check for any scss / sass files
@@ -36,12 +37,14 @@ function checkJsxRuntime() {
 
 module.exports = (mode) => ({
     mode,
+    target,
     devtool: (mode === 'development')
         ? 'cheap-module-source-map'
         : 'source-map',
-    entry: [
-        paths.entry,
-    ],
+    entry: pages.reduce((acc, { name, entry }) => {
+        acc[name] = entry;
+        return acc;
+    }, {}),
     output: {
         path: paths.dist,
         filename: (mode === 'production')
@@ -79,6 +82,14 @@ module.exports = (mode) => ({
         ],
         splitChunks: {
             chunks: 'all',
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    chunks: 'initial',
+                    name: 'vendor',
+                    enforce: true,
+                },
+            },
         },
     },
     resolve: {
@@ -270,25 +281,29 @@ module.exports = (mode) => ({
         ],
     },
     plugins: [
-        // Generates `index.html` with the <script> injected.
-        new HtmlWebpackPlugin({
-            inject: true,
-            template: paths.html,
-            ...((mode === 'production') ? {
-                minify: {
-                    removeComments: true,
-                    collapseWhitespace: true,
-                    removeRedundantAttributes: true,
-                    useShortDoctype: true,
-                    removeEmptyAttributes: true,
-                    removeStyleLinkTypeAttributes: true,
-                    keepClosingSlash: true,
-                    minifyJS: true,
-                    minifyCSS: true,
-                    minifyURLs: true,
-                },
-            } : {}),
-        }),
+        // Generates an html file for each page with <script> tags injected.
+        ...pages.map(({ name, html }) => (
+            new HtmlWebpackPlugin({
+                inject: true,
+                template: html,
+                chunks: [name],
+                filename: `${name}.html`,
+                ...((mode === 'production') ? {
+                    minify: {
+                        removeComments: true,
+                        collapseWhitespace: true,
+                        removeRedundantAttributes: true,
+                        useShortDoctype: true,
+                        removeEmptyAttributes: true,
+                        removeStyleLinkTypeAttributes: true,
+                        keepClosingSlash: true,
+                        minifyJS: true,
+                        minifyCSS: true,
+                        minifyURLs: true,
+                    },
+                } : {}),
+            })
+        )),
         // Apply eslint to all js code
         new ESLintPlugin({
             context: paths.src,

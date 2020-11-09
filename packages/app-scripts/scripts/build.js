@@ -5,6 +5,7 @@ const fs = require('fs-extra'),
     checkRequiredFiles = require('../lib/check-required-files'),
     checkBrowsers = require('../lib/check-browsers'),
     paths = require('../config/paths'),
+    appConfig = require('../config/app.config'),
     configFactory = require('../config/webpack.config');
 
 const [, , mode = 'production'] = process.argv;
@@ -13,10 +14,7 @@ console.log(chalk`📦  {bold Building app in {blue ${mode}} mode}\n`);
 
 // check that required files exist
 try {
-    checkRequiredFiles(paths.root, [
-        paths.entry,
-        paths.html,
-    ]);
+    checkRequiredFiles(paths.root, appConfig);
 } catch ({ message }) {
     console.log(chalk`{bold.red Error:} ${message}`);
     process.exit(1);
@@ -91,7 +89,7 @@ compiler.run((err, stats) => {
             children: false,
             chunks: false,
             chunkModules: false,
-            entrypoints: false,
+            entrypoints: true,
             performance: false,
         }),
     );

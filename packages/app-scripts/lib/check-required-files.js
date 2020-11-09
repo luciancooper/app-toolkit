@@ -2,8 +2,10 @@ const fs = require('fs'),
     path = require('path'),
     chalk = require('chalk');
 
-module.exports = (appPath, files) => {
-    const notFound = files.filter((file) => {
+module.exports = (appPath, { pages }) => {
+    const notFound = [
+        ...new Set(pages.flatMap(({ entry, html }) => [entry, html])),
+    ].filter((file) => {
         try {
             fs.accessSync(file, fs.F_OK);
             return false;

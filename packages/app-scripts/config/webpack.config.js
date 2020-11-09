@@ -7,6 +7,7 @@ const path = require('path'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
+    { HotModuleReplacementPlugin } = require('webpack'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
     paths = require('./paths'),
     { target, pages } = require('./app.config');
@@ -324,6 +325,9 @@ module.exports = (mode) => ({
         ] : [],
         // development plugins
         ...(mode === 'development') ? [
+            // hmr plugin
+            new HotModuleReplacementPlugin(),
+            // react refresh webpack plugin
             new ReactRefreshPlugin({
                 overlay: false,
             }),

@@ -51,6 +51,46 @@ compiler.hooks.done.tap('done', (stats) => {
 });
 ```
 
+### Integration with ESLint and stylelint
+
+This tool works best on ESLint and stylelint errors when integrated with ESLint via a custom [eslint formatter](https://eslint.org/docs/user-guide/formatters/) and with stylelint via a custom [stylelint formatter](https://stylelint.io/developer-guide/formatters).
+
+To integrate with ESLint, add the following to your [`eslint-webpack-plugin`](https://github.com/webpack-contrib/eslint-webpack-plugin) setup in your webpack config:
+
+```js
+const ESLintPlugin = require('eslint-webpack-plugin');
+
+module.exports = {
+    // ... other webpack config options ...
+    plugins: [
+        // ... other plugins ...
+        new ESLintPlugin({
+            // ... other eslint-webpack-plugin options ...
+            formatter: require.resolve('@lcooper/webpack-messages/eslint-formatter'),
+        }),
+    ],
+    // ...
+};
+```
+
+To integrate with stylelint, add the following to your [`stylelint-webpack-plugin`](https://github.com/webpack-contrib/stylelint-webpack-plugin) setup in your webpack config:
+
+```js
+const StylelintPlugin = require('stylelint-webpack-plugin');
+
+module.exports = {
+    // ... other webpack config options ...
+    plugins: [
+        // ... other plugins ...
+        new StylelintPlugin({
+            // ... other stylelint-webpack-plugin options ...
+            formatter: require('@lcooper/webpack-messages/stylelint-formatter'),
+        }),
+    ],
+    // ...
+};
+```
+
 ## API
 
 ### `webpackMessages(stats)`

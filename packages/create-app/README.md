@@ -65,8 +65,10 @@ Errors and warnings will be displayed in the console, and shown in the browser v
 
 ## Related
 
-[`@lcooper/app-scripts`](https://www.npmjs.com/package/@lcooper/app-scripts) - Scripts and configuration used by this project.\
-[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Error overlay used by this project.
+[`@lcooper/app-scripts`](https://www.npmjs.com/package/@lcooper/app-scripts) - App scripts and configuration.\
+[`@lcooper/webpack-messages`](https://www.npmjs.com/package/@lcooper/webpack-messages) - Webpack error and warning message formatter.\
+[`@lcooper/dev-server`](https://www.npmjs.com/package/@lcooper/dev-server) - Development server with HMR.\
+[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Overlay that displays errors and warnings in the browser.
 
 [npm-link]: https://www.npmjs.com/package/@lcooper/create-app
 [npm-badge]: https://img.shields.io/npm/v/@lcooper/create-app?logo=npm&style=for-the-badge

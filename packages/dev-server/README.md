@@ -154,6 +154,13 @@ Default: `10000`
 
 Interval to send updates to the client to keep the connection alive
 
+## Related
+
+[`@lcooper/create-app`](https://www.npmjs.com/package/@lcooper/create-app) - Tool for creating React apps with no configuration.\
+[`@lcooper/app-scripts`](https://www.npmjs.com/package/@lcooper/app-scripts) - Web app scripts and configuration.\
+[`@lcooper/webpack-messages`](https://www.npmjs.com/package/@lcooper/webpack-messages) - Utility used to extract and prettify webpack error and warning messages.\
+[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Overlay used to display errors and warnings in the browser.
+
 [npm-link]: https://www.npmjs.com/package/@lcooper/dev-server
 [npm-badge]: https://img.shields.io/npm/v/@lcooper/dev-server?logo=npm&style=for-the-badge
 [license-link]: LICENSE

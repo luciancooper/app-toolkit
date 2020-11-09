@@ -96,7 +96,9 @@ process.on('SIGTERM', closeMiddlware);
 ## Related
 
 [`@lcooper/create-app`](https://www.npmjs.com/package/@lcooper/create-app) - Tool for generating single page React apps that use this package.\
-[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Error overlay used by this package.
+[`@lcooper/dev-server`](https://www.npmjs.com/package/@lcooper/dev-server) - Development server with HMR.\
+[`@lcooper/webpack-messages`](https://www.npmjs.com/package/@lcooper/webpack-messages) - Webpack error and warning message formatter.\
+[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Overlay that displays errors and warnings in the browser.
 
 [npm-link]: https://www.npmjs.com/package/@lcooper/app-scripts
 [npm-badge]: https://img.shields.io/npm/v/@lcooper/app-scripts?logo=npm&style=for-the-badge

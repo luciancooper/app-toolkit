@@ -119,6 +119,13 @@ Transform error / warning data into formatted readable output strings.
 
 Returns: `{ errors: string[], warnings: string[] }`.
 
+## Related
+
+[`@lcooper/create-app`](https://www.npmjs.com/package/@lcooper/create-app) - Tool for creating React apps with no configuration.\
+[`@lcooper/app-scripts`](https://www.npmjs.com/package/@lcooper/app-scripts) - Web app scripts and configuration.\
+[`@lcooper/dev-server`](https://www.npmjs.com/package/@lcooper/dev-server) - Development server with HMR.\
+[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Overlay that displays errors and warnings in the browser.
+
 [npm-link]: https://www.npmjs.com/package/@lcooper/webpack-messages
 [npm-badge]: https://img.shields.io/npm/v/@lcooper/webpack-messages?logo=npm&style=for-the-badge
 [license-link]: LICENSE

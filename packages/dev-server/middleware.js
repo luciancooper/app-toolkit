@@ -54,6 +54,18 @@ module.exports = (config, {
         );
     }
 
+    // inject eslint-formatter into eslint-webpack-plugin if present
+    const eslintPlugin = config.plugins.find((plugin) => plugin.constructor.name === 'ESLintWebpackPlugin');
+    if (eslintPlugin) {
+        eslintPlugin.options.formatter = require.resolve('@lcooper/webpack-messages/eslint-formatter');
+    }
+    // inject stylelint-formatter into stylelint-webpack-plugin if present
+    const stylelintPlugin = config.plugins.find((plugin) => plugin.constructor.name === 'StylelintWebpackPlugin');
+    if (stylelintPlugin) {
+        // eslint-disable-next-line global-require
+        stylelintPlugin.options.formatter = require('@lcooper/webpack-messages/stylelint-formatter');
+    }
+
     // create webpack compiler instance
     let compiler;
     try {

@@ -3,7 +3,7 @@
 [![npm][npm-badge]][npm-link]
 [![license][license-badge]][license-link]
 
-A tool to generate single page React apps with no configuration. Inspired by [create-react-app](https://github.com/facebookincubator/create-react-app)
+A tool to generate React apps with no configuration. Inspired by [create-react-app](https://github.com/facebookincubator/create-react-app)
 
 ## Usage
 
@@ -43,6 +43,13 @@ new-app
     └── index.scss
 ```
 
+If a single page appliation meets your needs, get started by editing:
+
+ * `src/index.js` - the javascript entry point for your app
+ * `src/index.html` - the page template for your app
+
+To configure a multi page application, you'll have to edit the `app.config.js` file. More information can be found [here](https://github.com/luciancooper/app-toolkit/tree/master/packages/app-scripts#configuration).
+
 ## Scripts
 
 The following scripts are included in each new app:
@@ -65,8 +72,10 @@ Errors and warnings will be displayed in the console, and shown in the browser v
 
 ## Related
 
-[`@lcooper/app-scripts`](https://www.npmjs.com/package/@lcooper/app-scripts) - Scripts and configuration used by this project.\
-[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Error overlay used by this project.
+[`@lcooper/app-scripts`](https://www.npmjs.com/package/@lcooper/app-scripts) - App scripts and configuration.\
+[`@lcooper/webpack-messages`](https://www.npmjs.com/package/@lcooper/webpack-messages) - Webpack error and warning message formatter.\
+[`@lcooper/dev-server`](https://www.npmjs.com/package/@lcooper/dev-server) - Development server with HMR.\
+[`@lcooper/dev-overlay`](https://www.npmjs.com/package/@lcooper/dev-overlay) - Overlay that displays errors and warnings in the browser.
 
 [npm-link]: https://www.npmjs.com/package/@lcooper/create-app
 [npm-badge]: https://img.shields.io/npm/v/@lcooper/create-app?logo=npm&style=for-the-badge

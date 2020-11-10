@@ -1,18 +1,16 @@
 const chalk = require('chalk'),
-    DevServer = require('../lib/dev-server'),
-    checkRequiredFiles = require('../lib/utils/check-required-files'),
-    checkBrowsers = require('../lib/utils/check-browsers'),
-    paths = require('../config/paths'),
+    DevServer = require('@lcooper/dev-server'),
+    checkRequiredFiles = require('../lib/check-required-files'),
+    checkBrowsers = require('../lib/check-browsers'),
+    { root } = require('../config/paths'),
+    appConfig = require('../config/app.config'),
     configFactory = require('../config/webpack.config');
 
 console.log(chalk`🚀  {bold Launching dev server...}\n`);
 
 // check that required files exist
 try {
-    checkRequiredFiles(paths.root, [
-        paths.entry,
-        paths.html,
-    ]);
+    checkRequiredFiles(root, appConfig);
 } catch ({ message }) {
     console.log(chalk`{bold.red Error:} ${message}`);
     process.exit(1);
@@ -20,7 +18,7 @@ try {
 
 // warn if target browsers have not been specified
 try {
-    checkBrowsers(paths.root);
+    checkBrowsers(root);
 } catch ({ message }) {
     console.log(chalk`{bold.red Warning:} ${message}\n`);
 }
@@ -44,7 +42,7 @@ const devServer = new DevServer(config, {
 });
 
 // launch the dev server
-devServer.listen(port);
+devServer.listen({ port });
 
 // shutdown gracefully on SIGINT & SIGTERM signals
 ['SIGINT', 'SIGTERM'].forEach((signal) => {

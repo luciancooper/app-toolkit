@@ -44,7 +44,7 @@
     "@lcooper/eslint-config": "^1.1.1",
     "@lcooper/eslint-config-react": "^1.0.1",
     "@lcooper/stylelint-config-scss": "^1.0.1",
-    "eslint": "^7.9.0",
+    "eslint": "^7.13.0",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-jsdoc": "^30.5.1",
     "eslint-plugin-react": "^7.21.4",

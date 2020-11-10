@@ -7,23 +7,16 @@ const express = require('express'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
-    ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
-    clearConsole = require('./utils/clear-console'),
-    prependEntry = require('./utils/prepend-entry'),
-    errorFormatter = require('./format-errors');
+    webpackMessages = require('@lcooper/webpack-messages'),
+    clearConsole = require('./lib/clear-console'),
+    prependEntry = require('./lib/prepend-entry');
 
 function extractStats(stats) {
     const { hash, startTime, endTime } = stats,
         time = endTime - startTime,
-        name = stats.name || (stats.compilation && stats.compilation.name) || '';
-    // extract errors & warnings
-    let errors = [],
-        warnings = [];
-    if (stats.hasErrors()) {
-        errors = errorFormatter.extract(stats, 'errors');
-    } else if (stats.hasWarnings()) {
-        warnings = errorFormatter.extract(stats, 'warnings');
-    }
+        name = stats.name || (stats.compilation && stats.compilation.name) || '',
+        // extract errors & warnings
+        { errors, warnings } = webpackMessages.extract(stats);
     return {
         name,
         time,
@@ -49,7 +42,7 @@ module.exports = (config, {
 } = {}) => {
     // inject client entries into the config
     config.entry = prependEntry(config.entry, [
-        require.resolve('../client/entry'),
+        `${require.resolve('./client/entry')}?path=${path}&timeout=${heartbeat * 2}`,
         require.resolve('webpack/hot/dev-server'),
     ]);
     // inject development plugins into the config
@@ -60,13 +53,17 @@ module.exports = (config, {
             new webpack.HotModuleReplacementPlugin(),
         );
     }
-    // inject ReactRefreshPlugin into the config if it doesnt already exist
-    if (!config.plugins.some((plugin) => plugin.constructor.name === 'ReactRefreshPlugin')) {
-        config.plugins.push(
-            new ReactRefreshPlugin({
-                overlay: false,
-            }),
-        );
+
+    // inject eslint-formatter into eslint-webpack-plugin if present
+    const eslintPlugin = config.plugins.find((plugin) => plugin.constructor.name === 'ESLintWebpackPlugin');
+    if (eslintPlugin) {
+        eslintPlugin.options.formatter = require.resolve('@lcooper/webpack-messages/eslint-formatter');
+    }
+    // inject stylelint-formatter into stylelint-webpack-plugin if present
+    const stylelintPlugin = config.plugins.find((plugin) => plugin.constructor.name === 'StylelintWebpackPlugin');
+    if (stylelintPlugin) {
+        // eslint-disable-next-line global-require
+        stylelintPlugin.options.formatter = require('@lcooper/webpack-messages/stylelint-formatter');
     }
 
     // create webpack compiler instance
@@ -128,13 +125,12 @@ module.exports = (config, {
         const extracted = extractStats(stats);
         // Keep hold of latest stats so they can be propagated to new clients
         latestStats = extracted;
-        // log errors / warnings / successful compile
-        if (extracted.errors.length) {
-            console.log(chalk.bold.red('Failed to compile.'));
-            console.log(errorFormatter.format(extracted.errors, 'error').join(''));
-        } else if (extracted.warnings.length) {
-            console.log(chalk.bold.yellow('Compiled with warnings.'));
-            console.log(errorFormatter.format(extracted.warnings, 'warning').join(''));
+        // format extracted errors / warnings
+        const { errors, warnings } = webpackMessages.format(extracted);
+        if (errors.length) {
+            console.log(chalk`{bold.red Failed to compile.}\n${errors.join('')}`);
+        } else if (warnings.length) {
+            console.log(chalk`{bold.yellow Compiled with warnings.}\n${warnings.join('')}`);
         } else {
             console.log(chalk.bold.green('Compiled successfully!'));
         }

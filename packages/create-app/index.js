@@ -13,7 +13,9 @@ const path = require('path'),
     gitConfig = require('./lib/git-config'),
     createLicense = require('./lib/create-license'),
     createPackageJson = require('./lib/write-package-json'),
-    install = require('./lib/install');
+    install = require('./lib/install'),
+    fetchLatestVersion = require('./lib/latest-version'),
+    { version: currentVersion } = require('./package.json');
 
 function copyFile(src, dest, transform) {
     let file = fs.readFileSync(src, 'utf8');
@@ -22,10 +24,26 @@ function copyFile(src, dest, transform) {
 }
 
 async function main(args) {
+    // check for version flag (-version / -v)
+    if (args.some((arg) => /^-{1,2}v(?:ersion)?$/.test(arg))) {
+        // print version and exit
+        console.log(currentVersion);
+        // return exit code 0
+        return 0;
+    }
     // check for help flag (-help / -h)
     if (args.some((arg) => /^-{1,2}h(?:elp)?$/.test(arg))) {
         // print usage instructions and exit
-        console.log(chalk`{bold Usage:}\n\n{cyan create-app} {green <project-name>}`);
+        console.log([
+            chalk`{bold.magenta @lcooper/create-app} ({bold v${currentVersion}})`,
+            '',
+            chalk`  {bold.underline Usage:}`,
+            chalk`    {cyan create-app} {green <project-name>}`,
+            '',
+            chalk`  {bold.underline Options:}`,
+            chalk`    {cyan -h --help}        Show this message.`,
+            chalk`    {cyan -v --version}     Show version.`,
+        ].join('\n'));
         // return exit code 0
         return 0;
     }
@@ -244,6 +262,10 @@ async function main(args) {
         (file) => file.replace(/%TITLE%/, appName),
     );
 
+    // fetch latest app-scripts version
+    let scriptsVersion = await fetchLatestVersion('@lcooper/app-scripts');
+    scriptsVersion = scriptsVersion ? `@^${scriptsVersion}` : '';
+
     // install dependencies
     console.log(chalk.bold('\nInstalling dependencies\n'));
 
@@ -256,7 +278,7 @@ async function main(args) {
     console.log(chalk.bold('\nInstalling devDependencies\n'));
 
     await install(root, [
-        '@lcooper/app-scripts',
+        `@lcooper/app-scripts${scriptsVersion}`,
         '@lcooper/eslint-config',
         '@lcooper/eslint-config-react',
         'eslint',

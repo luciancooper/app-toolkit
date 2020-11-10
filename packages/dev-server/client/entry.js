@@ -1,5 +1,6 @@
 /* eslint-env browser */
 /* eslint-disable no-use-before-define */
+/* global __resourceQuery */
 
 /**
  * @file
@@ -9,8 +10,28 @@
 const hotEmitter = require('webpack/hot/emitter'),
     overlay = require('@lcooper/dev-overlay');
 
-const path = '/__dev-server',
-    timeout = 20 * 1000;
+const {
+    path = '/__dev-server',
+    timeout = 20 * 1000,
+} = (typeof __resourceQuery === 'string' && __resourceQuery.trim().replace(/^\?/, ''))
+    ? __resourceQuery.trim().replace(/^\?/, '').split('&').reduce((acc, param) => {
+        const qs = param.replace(/\+/g, '%20'),
+            idx = qs.indexOf('=');
+        // split key & value
+        let [key, value] = (idx >= 0) ? [qs.slice(0, idx), qs.slice(idx + 1)] : [qs, ''];
+        // decode uris
+        [key, value] = [decodeURIComponent(key), decodeURIComponent(value)];
+        // parse value string
+        try {
+            value = JSON.parse(value);
+        } catch (e) {
+            // ignore
+        }
+        // assign key value to accumulator
+        acc[key] = Object.hasOwnProperty.call(acc, key) ? [].concat(acc[key], value) : value;
+        return acc;
+    }, {})
+    : {};
 
 let isUnloading = false;
 
@@ -32,13 +53,13 @@ function processMessage({ action, ...data }) {
     if (errors && errors.length > 0) {
         // report errors and exit, do not apply update
         console.error(
-            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has error${errors.length} ${errors.length > 1 ? 's' : ''}`,
+            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${errors.length} error${errors.length > 1 ? 's' : ''}`,
             'color:#ff0000',
         );
         return;
     }
     // check for warnings
-    if (data.warnings && data.warnings.length > 0) {
+    if (warnings && warnings.length > 0) {
         // log warnings to console
         console.warn(
             `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`,
@@ -100,7 +121,7 @@ function connect() {
 if (typeof window === 'undefined') {
     // do nothing
 } else if (typeof window.EventSource === 'undefined') {
-    console.warn('app-scripts dev-server client requires EventSource');
+    console.warn('dev-server client requires EventSource');
 } else {
     connect();
     // tell overlay to register runtime error listeners

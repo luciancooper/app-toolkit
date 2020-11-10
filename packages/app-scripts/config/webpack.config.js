@@ -7,7 +7,10 @@ const path = require('path'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
-    paths = require('./paths');
+    { HotModuleReplacementPlugin } = require('webpack'),
+    ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
+    paths = require('./paths'),
+    { target, pages } = require('./app.config');
 
 function checkStylelint() {
     // check for any scss / sass files
@@ -35,12 +38,14 @@ function checkJsxRuntime() {
 
 module.exports = (mode) => ({
     mode,
+    target,
     devtool: (mode === 'development')
         ? 'cheap-module-source-map'
         : 'source-map',
-    entry: [
-        paths.entry,
-    ],
+    entry: pages.reduce((acc, { name, entry }) => {
+        acc[name] = entry;
+        return acc;
+    }, {}),
     output: {
         path: paths.dist,
         filename: (mode === 'production')
@@ -78,6 +83,14 @@ module.exports = (mode) => ({
         ],
         splitChunks: {
             chunks: 'all',
+            cacheGroups: {
+                vendor: {
+                    test: /[\\/]node_modules[\\/]/,
+                    chunks: 'initial',
+                    name: 'vendor',
+                    enforce: true,
+                },
+            },
         },
     },
     resolve: {
@@ -269,31 +282,35 @@ module.exports = (mode) => ({
         ],
     },
     plugins: [
-        // Generates `index.html` with the <script> injected.
-        new HtmlWebpackPlugin({
-            inject: true,
-            template: paths.html,
-            ...((mode === 'production') ? {
-                minify: {
-                    removeComments: true,
-                    collapseWhitespace: true,
-                    removeRedundantAttributes: true,
-                    useShortDoctype: true,
-                    removeEmptyAttributes: true,
-                    removeStyleLinkTypeAttributes: true,
-                    keepClosingSlash: true,
-                    minifyJS: true,
-                    minifyCSS: true,
-                    minifyURLs: true,
-                },
-            } : {}),
-        }),
+        // Generates an html file for each page with <script> tags injected.
+        ...pages.map(({ name, html }) => (
+            new HtmlWebpackPlugin({
+                inject: true,
+                template: html,
+                chunks: [name],
+                filename: `${name}.html`,
+                ...((mode === 'production') ? {
+                    minify: {
+                        removeComments: true,
+                        collapseWhitespace: true,
+                        removeRedundantAttributes: true,
+                        useShortDoctype: true,
+                        removeEmptyAttributes: true,
+                        removeStyleLinkTypeAttributes: true,
+                        keepClosingSlash: true,
+                        minifyJS: true,
+                        minifyCSS: true,
+                        minifyURLs: true,
+                    },
+                } : {}),
+            })
+        )),
         // Apply eslint to all js code
         new ESLintPlugin({
             context: paths.src,
             extensions: ['js', 'mjs', 'jsx'],
             eslintPath: require.resolve('eslint'),
-            formatter: require.resolve('../lib/eslint-formatter'),
+            formatter: require.resolve('@lcooper/webpack-messages/eslint-formatter'),
             emitWarning: true,
         }),
         // Applies stylelint to all sass code
@@ -303,7 +320,16 @@ module.exports = (mode) => ({
                 files: '**/*.s(a|c)ss',
                 emitWarning: true,
                 // eslint-disable-next-line global-require
-                formatter: require('../lib/stylelint-formatter'),
+                formatter: require('@lcooper/webpack-messages/stylelint-formatter'),
+            }),
+        ] : [],
+        // development plugins
+        ...(mode === 'development') ? [
+            // hmr plugin
+            new HotModuleReplacementPlugin(),
+            // react refresh webpack plugin
+            new ReactRefreshPlugin({
+                overlay: false,
             }),
         ] : [],
         // production plugins

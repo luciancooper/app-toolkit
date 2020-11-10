@@ -9,7 +9,6 @@
   "files": [
     "middleware.js",
     "bin",
-    "client",
     "config",
     "lib",
     "scripts"

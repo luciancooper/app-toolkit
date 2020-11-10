@@ -14,6 +14,7 @@ const path = require('path'),
     createLicense = require('./lib/create-license'),
     createPackageJson = require('./lib/write-package-json'),
     install = require('./lib/install'),
+    fetchLatestVersion = require('./lib/latest-version'),
     { version: currentVersion } = require('./package.json');
 
 function copyFile(src, dest, transform) {
@@ -261,6 +262,10 @@ async function main(args) {
         (file) => file.replace(/%TITLE%/, appName),
     );
 
+    // fetch latest app-scripts version
+    let scriptsVersion = await fetchLatestVersion('@lcooper/app-scripts');
+    scriptsVersion = scriptsVersion ? `@^${scriptsVersion}` : '';
+
     // install dependencies
     console.log(chalk.bold('\nInstalling dependencies\n'));
 
@@ -273,7 +278,7 @@ async function main(args) {
     console.log(chalk.bold('\nInstalling devDependencies\n'));
 
     await install(root, [
-        '@lcooper/app-scripts',
+        `@lcooper/app-scripts${scriptsVersion}`,
         '@lcooper/eslint-config',
         '@lcooper/eslint-config-react',
         'eslint',

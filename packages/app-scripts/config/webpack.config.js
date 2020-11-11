@@ -253,6 +253,13 @@ module.exports = (mode) => ({
                                 },
                             },
                             {
+                                loader: require.resolve('resolve-url-loader'),
+                                options: {
+                                    sourceMap: true,
+                                    root: paths.src,
+                                },
+                            },
+                            {
                                 loader: require.resolve('sass-loader'),
                                 options: {
                                     // eslint-disable-next-line global-require

@@ -122,6 +122,17 @@ module.exports = (mode) => ({
                             outputPath: 'assets/static',
                         },
                     },
+                    // load fonts
+                    {
+                        test: /\.(?:woff2?|eot|ttf|otf)$/,
+                        loader: require.resolve('file-loader'),
+                        options: {
+                            name: (mode === 'production')
+                                ? '[name].[contenthash:8].[ext]'
+                                : '[name].[ext]',
+                            outputPath: 'assets/fonts',
+                        },
+                    },
                     // process source js
                     {
                         test: /\.(?:js|mjs|jsx)$/,

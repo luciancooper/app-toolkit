@@ -32,8 +32,8 @@
   },
   "homepage": "https://github.com/luciancooper/app-toolkit/tree/master/packages/dev-server#readme",
   "dependencies": {
-    "@lcooper/dev-overlay": "^0.0.0",
-    "@lcooper/webpack-messages": "^0.0.0",
+    "@lcooper/dev-overlay": "0.0.1",
+    "@lcooper/webpack-messages": "0.0.0",
     "better-opn": "^2.1.1",
     "chalk": "^4.1.0",
     "express": "^4.17.1",

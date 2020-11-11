@@ -11,7 +11,7 @@ const path = require('path'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
     svgToMiniDataURI = require('mini-svg-data-uri'),
     paths = require('./paths'),
-    { target, pages } = require('./app.config');
+    { target, publicPath, pages } = require('./app.config');
 
 function checkStylelint() {
     // check for any scss / sass files
@@ -55,7 +55,7 @@ module.exports = (mode) => ({
         chunkFilename: (mode === 'production')
             ? 'assets/[name].[contenthash:8].chunk.js'
             : 'assets/[name].chunk.js',
-        publicPath: '/',
+        publicPath: (mode === 'development') ? '/' : publicPath,
     },
     optimization: {
         minimize: (mode === 'production'),
@@ -215,7 +215,12 @@ module.exports = (mode) => ({
                         use: [
                             (mode === 'development')
                                 ? require.resolve('style-loader')
-                                : MiniCssExtractPlugin.loader,
+                                : {
+                                    loader: MiniCssExtractPlugin.loader,
+                                    options: {
+                                        publicPath: path.isAbsolute(publicPath) ? publicPath : '../',
+                                    },
+                                },
                             {
                                 loader: require.resolve('css-loader'),
                                 options: {
@@ -252,7 +257,12 @@ module.exports = (mode) => ({
                         use: [
                             (mode === 'development')
                                 ? require.resolve('style-loader')
-                                : MiniCssExtractPlugin.loader,
+                                : {
+                                    loader: MiniCssExtractPlugin.loader,
+                                    options: {
+                                        publicPath: path.isAbsolute(publicPath) ? publicPath : '../',
+                                    },
+                                },
                             {
                                 loader: require.resolve('css-loader'),
                                 options: {

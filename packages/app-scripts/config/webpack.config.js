@@ -9,6 +9,7 @@ const path = require('path'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
     { HotModuleReplacementPlugin } = require('webpack'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
+    svgToMiniDataURI = require('mini-svg-data-uri'),
     paths = require('./paths'),
     { target, pages } = require('./app.config');
 
@@ -109,12 +110,13 @@ module.exports = (mode) => ({
         rules: [
             {
                 oneOf: [
-                    // url-loader
+                    // load img assets
                     {
                         test: /\.(?:bmp|gif|jpe?g|png)$/,
                         loader: require.resolve('url-loader'),
                         options: {
-                            limit: 1000,
+                            // set an inline size limit of 10 KB
+                            limit: 10 * 1024,
                             // options for file-loader fallback
                             name: (mode === 'production')
                                 ? '[name].[contenthash:8].[ext]'
@@ -122,7 +124,22 @@ module.exports = (mode) => ({
                             outputPath: 'assets/static',
                         },
                     },
-                    // load fonts
+                    // load svg assets
+                    {
+                        test: /\.svg$/,
+                        loader: require.resolve('url-loader'),
+                        options: {
+                            // set an inline size limit of 10 KB
+                            limit: 10 * 1024,
+                            generator: (content) => svgToMiniDataURI(content.toString()),
+                            // options for file-loader fallback
+                            name: (mode === 'production')
+                                ? '[name].[contenthash:8].[ext]'
+                                : '[name].[ext]',
+                            outputPath: 'assets/static',
+                        },
+                    },
+                    // load font assets
                     {
                         test: /\.(?:woff2?|eot|ttf|otf)$/,
                         loader: require.resolve('file-loader'),

@@ -9,8 +9,9 @@ const path = require('path'),
     OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
     { HotModuleReplacementPlugin } = require('webpack'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
+    svgToMiniDataURI = require('mini-svg-data-uri'),
     paths = require('./paths'),
-    { target, pages } = require('./app.config');
+    { target, publicPath, pages } = require('./app.config');
 
 function checkStylelint() {
     // check for any scss / sass files
@@ -54,7 +55,7 @@ module.exports = (mode) => ({
         chunkFilename: (mode === 'production')
             ? 'assets/[name].[contenthash:8].chunk.js'
             : 'assets/[name].chunk.js',
-        publicPath: '/',
+        publicPath: (mode === 'development') ? '/' : publicPath,
     },
     optimization: {
         minimize: (mode === 'production'),
@@ -109,17 +110,44 @@ module.exports = (mode) => ({
         rules: [
             {
                 oneOf: [
-                    // url-loader
+                    // load img assets
                     {
                         test: /\.(?:bmp|gif|jpe?g|png)$/,
                         loader: require.resolve('url-loader'),
                         options: {
-                            limit: 1000,
+                            // set an inline size limit of 10 KB
+                            limit: 10 * 1024,
                             // options for file-loader fallback
                             name: (mode === 'production')
                                 ? '[name].[contenthash:8].[ext]'
                                 : '[name].[ext]',
                             outputPath: 'assets/static',
+                        },
+                    },
+                    // load svg assets
+                    {
+                        test: /\.svg$/,
+                        loader: require.resolve('url-loader'),
+                        options: {
+                            // set an inline size limit of 10 KB
+                            limit: 10 * 1024,
+                            generator: (content) => svgToMiniDataURI(content.toString()),
+                            // options for file-loader fallback
+                            name: (mode === 'production')
+                                ? '[name].[contenthash:8].[ext]'
+                                : '[name].[ext]',
+                            outputPath: 'assets/static',
+                        },
+                    },
+                    // load font assets
+                    {
+                        test: /\.(?:woff2?|eot|ttf|otf)$/,
+                        loader: require.resolve('file-loader'),
+                        options: {
+                            name: (mode === 'production')
+                                ? '[name].[contenthash:8].[ext]'
+                                : '[name].[ext]',
+                            outputPath: 'assets/fonts',
                         },
                     },
                     // process source js
@@ -187,7 +215,12 @@ module.exports = (mode) => ({
                         use: [
                             (mode === 'development')
                                 ? require.resolve('style-loader')
-                                : MiniCssExtractPlugin.loader,
+                                : {
+                                    loader: MiniCssExtractPlugin.loader,
+                                    options: {
+                                        publicPath: path.isAbsolute(publicPath) ? publicPath : '../',
+                                    },
+                                },
                             {
                                 loader: require.resolve('css-loader'),
                                 options: {
@@ -224,7 +257,12 @@ module.exports = (mode) => ({
                         use: [
                             (mode === 'development')
                                 ? require.resolve('style-loader')
-                                : MiniCssExtractPlugin.loader,
+                                : {
+                                    loader: MiniCssExtractPlugin.loader,
+                                    options: {
+                                        publicPath: path.isAbsolute(publicPath) ? publicPath : '../',
+                                    },
+                                },
                             {
                                 loader: require.resolve('css-loader'),
                                 options: {
@@ -250,6 +288,13 @@ module.exports = (mode) => ({
                                         ],
                                     },
                                     sourceMap: true,
+                                },
+                            },
+                            {
+                                loader: require.resolve('resolve-url-loader'),
+                                options: {
+                                    sourceMap: true,
+                                    root: paths.src,
                                 },
                             },
                             {

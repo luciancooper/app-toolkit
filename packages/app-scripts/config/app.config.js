@@ -79,6 +79,7 @@ if (fs.existsSync(paths.config)) {
 
 module.exports = {
     target: config.target || 'web',
+    publicPath: config.publicPath || '/',
     pages: resolvePages(config),
     config,
 };

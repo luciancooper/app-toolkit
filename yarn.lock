@@ -1303,17 +1303,17 @@
   dependencies:
     "@commitlint/config-conventional" "^10.0.0"
 
-"@lcooper/eslint-config-react@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@lcooper/eslint-config-react/-/eslint-config-react-1.0.1.tgz#3eb8a0c34968aafa918188da858d2fa901b2c2dc"
-  integrity sha512-fcVcOV9v9uIWhlcGhu0A7lKwcpkGBlCF4qfPomaZkBOQ4qEqOKkVuLERd0vWjIgLmr1Regt07Utq7ZiolNUvIQ==
+"@lcooper/eslint-config-react@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@lcooper/eslint-config-react/-/eslint-config-react-1.1.0.tgz#00ec91dae4fbb14cb014187b793d2a39e6cf618a"
+  integrity sha512-Unr1/Vw+Nvu3mDvO8Weqd0kLNlqyKIRtmhFk9RjWsm5hlQpWgTBhkKZqJRZRMbLYl2tyBrmzJdCHcJ2lt4x+rw==
   dependencies:
-    "@lcooper/eslint-config" "1.1.1"
+    "@lcooper/eslint-config" "1.1.2"
 
-"@lcooper/eslint-config@1.1.1", "@lcooper/eslint-config@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@lcooper/eslint-config/-/eslint-config-1.1.1.tgz#12b940cb5c3e102ff5579f964b67f99fae06b705"
-  integrity sha512-4kcGu6hjpRmxTi4hoRGmDbgjbM6NTqy7ZPAxUdKzRd3TgOSfo+3u28D9ueOu7VzbvENUiM7SV4nuMxYAZlDPcA==
+"@lcooper/eslint-config@1.1.2", "@lcooper/eslint-config@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@lcooper/eslint-config/-/eslint-config-1.1.2.tgz#1eb90c96851715e4a43e3e91d3e4cb816e709d2c"
+  integrity sha512-o6JGZwmS2ZqGvHPZ9oXrrgav3P9oM7xHbZKIeHjT3XH2TVfIrmMyTpFPV4+ScoFQjKypx5BmHAgY91Hmd8QDaw==
   dependencies:
     eslint-config-airbnb-base "^14.2.0"
 
@@ -4851,6 +4851,11 @@ eslint-plugin-jsdoc@^30.5.1:
     regextras "^0.7.1"
     semver "^7.3.2"
     spdx-expression-parse "^3.0.1"
+
+eslint-plugin-react-hooks@^4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-4.2.0.tgz#8c229c268d468956334c943bb45fc860280f5556"
+  integrity sha512-623WEiZJqxR7VdxFCKLI6d6LLpwJkGPYKODnkH3D7WpOG5KM8yWueBd8TLsNAetEJNF5iJmolaAKO3F8yzyVBQ==
 
 eslint-plugin-react@^7.21.4:
   version "7.21.4"

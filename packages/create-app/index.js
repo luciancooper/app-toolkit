@@ -285,6 +285,7 @@ async function main(args) {
         'eslint-plugin-import',
         'eslint-plugin-jsdoc',
         'eslint-plugin-react',
+        'eslint-plugin-react-hooks',
         ...scss ? [
             'stylelint',
             '@lcooper/stylelint-config-scss',

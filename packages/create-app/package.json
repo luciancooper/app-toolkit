@@ -1,6 +1,6 @@
 {
   "name": "@lcooper/create-app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Create web apps with no configuration",
   "bin": "./index.js",
   "files": [

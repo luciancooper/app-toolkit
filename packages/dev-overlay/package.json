@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "build": "node tasks/build.js",
-    "watch": "node tasks/build.js --watch"
+    "watch": "node tasks/build.js --watch",
+    "version": "yarn run build"
   },
   "publishConfig": {
     "access": "public"

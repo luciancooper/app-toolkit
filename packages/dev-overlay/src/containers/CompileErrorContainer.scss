@@ -4,6 +4,7 @@
     @include flex(column);
     overflow: auto;
     min-width: 50%;
+    max-width: 100%;
 
     > header {
         padding: 1em;

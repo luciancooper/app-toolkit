@@ -127,17 +127,22 @@ module.exports = (mode) => ({
                     // load svg assets
                     {
                         test: /\.svg$/,
-                        loader: require.resolve('url-loader'),
-                        options: {
-                            // set an inline size limit of 10 KB
-                            limit: 10 * 1024,
-                            generator: (content) => svgToMiniDataURI(content.toString()),
-                            // options for file-loader fallback
-                            name: (mode === 'production')
-                                ? '[name].[contenthash:8].[ext]'
-                                : '[name].[ext]',
-                            outputPath: 'assets/static',
-                        },
+                        use: [
+                            {
+                                loader: require.resolve('url-loader'),
+                                options: {
+                                    // set an inline size limit of 10 KB
+                                    limit: 10 * 1024,
+                                    generator: (content) => svgToMiniDataURI(content.toString()),
+                                    // options for file-loader fallback
+                                    name: (mode === 'production')
+                                        ? '[name].[contenthash:8].[ext]'
+                                        : '[name].[ext]',
+                                    outputPath: 'assets/static',
+                                },
+                            },
+                            require.resolve('svgo-loader'),
+                        ],
                     },
                     // load font assets
                     {

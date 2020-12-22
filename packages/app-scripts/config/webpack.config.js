@@ -175,6 +175,16 @@ module.exports = (mode) => ({
                                         version: require('@babel/runtime/package.json').version,
                                     },
                                 ],
+                                [
+                                    require.resolve('babel-plugin-named-asset-import'),
+                                    {
+                                        loaderMap: {
+                                            svg: {
+                                                ReactComponent: `${require.resolve('@svgr/webpack')}?+ref![path]`,
+                                            },
+                                        },
+                                    },
+                                ],
                                 (mode === 'development') && require.resolve('react-refresh/babel'),
                             ].filter(Boolean),
                             cacheDirectory: true,

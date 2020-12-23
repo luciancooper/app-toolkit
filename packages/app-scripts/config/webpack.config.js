@@ -281,7 +281,7 @@ module.exports = (mode) => ({
                             {
                                 loader: require.resolve('css-loader'),
                                 options: {
-                                    importLoaders: 2,
+                                    importLoaders: 3,
                                     sourceMap: true,
                                 },
                             },

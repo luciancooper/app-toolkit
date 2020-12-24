@@ -4,7 +4,7 @@ const fs = require('fs-extra'),
     webpackMessages = require('@lcooper/webpack-messages'),
     checkRequiredFiles = require('../lib/check-required-files'),
     checkBrowsers = require('../lib/check-browsers'),
-    paths = require('../config/paths'),
+    { root } = require('../config/paths'),
     appConfig = require('../config/app.config'),
     configFactory = require('../config/webpack.config');
 
@@ -14,7 +14,7 @@ console.log(chalk`📦  {bold Building app in {blue ${mode}} mode}\n`);
 
 // check that required files exist
 try {
-    checkRequiredFiles(paths.root, appConfig);
+    checkRequiredFiles(root, appConfig);
 } catch ({ message }) {
     console.log(chalk`{bold.red Error:} ${message}`);
     process.exit(1);
@@ -22,7 +22,7 @@ try {
 
 // warn if target browsers have not been specified
 try {
-    checkBrowsers(paths.root);
+    checkBrowsers(root);
 } catch ({ message }) {
     console.log(chalk`{bold.red Warning:} ${message}\n`);
 }
@@ -49,7 +49,7 @@ try {
 }
 
 // clear the output directory
-fs.emptyDirSync(paths.dist);
+fs.emptyDirSync(appConfig.output);
 
 // run webpack
 compiler.run((err, stats) => {

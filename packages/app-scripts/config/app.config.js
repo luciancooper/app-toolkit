@@ -23,63 +23,64 @@ function uniquePageName(name, pages) {
     return unique;
 }
 
-function resolvePages(config) {
-    let { pages } = config;
+function resolvePages({ entry, html, pages }) {
     if (!pages || typeof pages !== 'object') {
         return [{
             name: 'index',
-            entry: resolveModule(config.entry || 'src/index'),
-            html: path.resolve(paths.root, config.html || 'src/index.html'),
+            entry: resolveModule(entry || 'src/index'),
+            html: path.resolve(paths.root, html),
         }];
     }
-    // determine base html
-    const { html: baseHtml = 'src/index.html' } = config;
-
-    // if pages is an object, convert to an array
-    if (!Array.isArray(pages)) {
-        pages = Object.entries(pages).map(([name, item]) => {
+    const pageArray = (Array.isArray(pages) && pages) || (
+        Object.entries(pages).map(([name, item]) => {
             if (!item || !['string', 'object'].includes(typeof item)) return null;
             // check if item is string
             return (typeof item === 'string') ? { name, entry: item } : { name, ...item };
-        }).filter(Boolean);
-    }
-    return pages.reduce(
-        (acc, page) => {
-            let [name, entry, html] = [];
-            if (typeof page === 'string') {
-                [entry, html] = [page, baseHtml];
-            } else {
-                ({ name, entry, html = baseHtml } = page);
-            }
-            if (!name) ({ name } = path.parse(entry));
-            // add page item
-            acc.push({
-                name: uniquePageName(name, acc),
-                entry: resolveModule(entry),
-                html: path.resolve(paths.root, html),
-            });
-            // return accumulator
-            return acc;
-        },
-        // check config.entry
-        (config.entry && typeof config.entry === 'string') ? [{
-            name: 'index',
-            entry: resolveModule(config.entry),
-            html: path.resolve(paths.root, baseHtml),
-        }] : [],
+        }).filter(Boolean)
     );
+    return pageArray.reduce((acc, page) => {
+        let [name, pageEntry, pageHtml] = [];
+        if (typeof page === 'string') {
+            [pageEntry, pageHtml] = [page, html];
+        } else {
+            ({ name, entry: pageEntry, html: pageHtml = html } = page);
+        }
+        if (!name) ({ name } = path.parse(pageEntry));
+        // add page item
+        acc.push({
+            name: uniquePageName(name, acc),
+            entry: resolveModule(pageEntry),
+            html: path.resolve(paths.root, pageHtml),
+        });
+        // return accumulator
+        return acc;
+    }, (entry && typeof entry === 'string') ? [{
+        name: 'index',
+        entry: resolveModule(entry),
+        html: path.resolve(paths.root, html),
+    }] : []);
 }
 
-let config = {};
+let config = {
+    source: 'src',
+    output: 'dist',
+    target: 'web',
+    publicPath: '/',
+    html: 'src/index.html',
+};
 
-if (fs.existsSync(paths.config)) {
-    // eslint-disable-next-line global-require, import/no-dynamic-require
-    config = require(paths.config);
+if (fs.existsSync(paths.configPath)) {
+    config = {
+        ...config,
+        // eslint-disable-next-line global-require, import/no-dynamic-require
+        ...require(paths.configPath),
+    };
 }
 
 module.exports = {
-    target: config.target || 'web',
-    publicPath: config.publicPath || '/',
+    source: path.resolve(paths.root, config.source),
+    output: path.resolve(paths.root, config.output),
+    target: config.target,
+    publicPath: config.publicPath,
     pages: resolvePages(config),
-    config,
 };

@@ -10,12 +10,15 @@ const path = require('path'),
     { HotModuleReplacementPlugin } = require('webpack'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
     svgToMiniDataURI = require('mini-svg-data-uri'),
-    paths = require('./paths'),
-    { target, publicPath, pages } = require('./app.config');
+    { root } = require('./paths'),
+    config = require('./app.config');
 
 function checkStylelint() {
     // check for any scss / sass files
-    const files = globby.sync(path.join(paths.src, '**/*.s(a|c)ss'));
+    const files = globby.sync(
+        (Array.isArray(config.source) ? config.source : [config.source])
+            .map((src) => path.join(src, '**/*.s(a|c)ss')),
+    );
     // if no scss files are found, return false
     if (!files.length) return false;
     // create a synchronous cosmiconfig explorer instance and ensure a config exists for each file
@@ -29,7 +32,7 @@ function checkStylelint() {
 function checkJsxRuntime() {
     try {
         require.resolve('react/jsx-runtime.js', {
-            paths: [paths.root],
+            paths: [root],
         });
         return true;
     } catch (e) {
@@ -39,23 +42,24 @@ function checkJsxRuntime() {
 
 module.exports = (mode) => ({
     mode,
-    target,
+    context: root,
+    target: config.target,
     devtool: (mode === 'development')
         ? 'cheap-module-source-map'
         : 'source-map',
-    entry: pages.reduce((acc, { name, entry }) => {
+    entry: config.pages.reduce((acc, { name, entry }) => {
         acc[name] = entry;
         return acc;
     }, {}),
     output: {
-        path: paths.dist,
+        path: config.output,
         filename: (mode === 'production')
             ? 'assets/[name].[contenthash:8].js'
             : 'assets/[name].js',
         chunkFilename: (mode === 'production')
             ? 'assets/[name].[contenthash:8].chunk.js'
             : 'assets/[name].chunk.js',
-        publicPath: (mode === 'development') ? '/' : publicPath,
+        publicPath: (mode === 'development') ? '/' : config.publicPath,
     },
     optimization: {
         minimize: (mode === 'production'),
@@ -97,7 +101,7 @@ module.exports = (mode) => ({
     resolve: {
         modules: [
             'node_modules',
-            path.resolve(paths.root, 'node_modules'),
+            path.resolve(root, 'node_modules'),
         ],
         extensions: [
             '.mjs',
@@ -127,17 +131,22 @@ module.exports = (mode) => ({
                     // load svg assets
                     {
                         test: /\.svg$/,
-                        loader: require.resolve('url-loader'),
-                        options: {
-                            // set an inline size limit of 10 KB
-                            limit: 10 * 1024,
-                            generator: (content) => svgToMiniDataURI(content.toString()),
-                            // options for file-loader fallback
-                            name: (mode === 'production')
-                                ? '[name].[contenthash:8].[ext]'
-                                : '[name].[ext]',
-                            outputPath: 'assets/static',
-                        },
+                        use: [
+                            {
+                                loader: require.resolve('url-loader'),
+                                options: {
+                                    // set an inline size limit of 10 KB
+                                    limit: 10 * 1024,
+                                    generator: (content) => svgToMiniDataURI(content.toString()),
+                                    // options for file-loader fallback
+                                    name: (mode === 'production')
+                                        ? '[name].[contenthash:8].[ext]'
+                                        : '[name].[ext]',
+                                    outputPath: 'assets/static',
+                                },
+                            },
+                            require.resolve('svgo-loader'),
+                        ],
                     },
                     // load font assets
                     {
@@ -153,7 +162,7 @@ module.exports = (mode) => ({
                     // process source js
                     {
                         test: /\.(?:js|mjs|jsx)$/,
-                        include: paths.src,
+                        include: config.source,
                         loader: require.resolve('babel-loader'),
                         options: {
                             babelrc: false,
@@ -173,6 +182,16 @@ module.exports = (mode) => ({
                                         absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
                                         // eslint-disable-next-line global-require
                                         version: require('@babel/runtime/package.json').version,
+                                    },
+                                ],
+                                [
+                                    require.resolve('babel-plugin-named-asset-import'),
+                                    {
+                                        loaderMap: {
+                                            svg: {
+                                                ReactComponent: `${require.resolve('@svgr/webpack')}?+ref![path]`,
+                                            },
+                                        },
                                     },
                                 ],
                                 (mode === 'development') && require.resolve('react-refresh/babel'),
@@ -218,7 +237,7 @@ module.exports = (mode) => ({
                                 : {
                                     loader: MiniCssExtractPlugin.loader,
                                     options: {
-                                        publicPath: path.isAbsolute(publicPath) ? publicPath : '../',
+                                        publicPath: path.isAbsolute(config.publicPath) ? config.publicPath : '../',
                                     },
                                 },
                             {
@@ -260,13 +279,13 @@ module.exports = (mode) => ({
                                 : {
                                     loader: MiniCssExtractPlugin.loader,
                                     options: {
-                                        publicPath: path.isAbsolute(publicPath) ? publicPath : '../',
+                                        publicPath: path.isAbsolute(config.publicPath) ? config.publicPath : '../',
                                     },
                                 },
                             {
                                 loader: require.resolve('css-loader'),
                                 options: {
-                                    importLoaders: 2,
+                                    importLoaders: 3,
                                     sourceMap: true,
                                 },
                             },
@@ -294,7 +313,6 @@ module.exports = (mode) => ({
                                 loader: require.resolve('resolve-url-loader'),
                                 options: {
                                     sourceMap: true,
-                                    root: paths.src,
                                 },
                             },
                             {
@@ -328,7 +346,7 @@ module.exports = (mode) => ({
     },
     plugins: [
         // Generates an html file for each page with <script> tags injected.
-        ...pages.map(({ name, html }) => (
+        ...config.pages.map(({ name, html }) => (
             new HtmlWebpackPlugin({
                 inject: true,
                 template: html,
@@ -352,7 +370,6 @@ module.exports = (mode) => ({
         )),
         // Apply eslint to all js code
         new ESLintPlugin({
-            context: paths.src,
             extensions: ['js', 'mjs', 'jsx'],
             eslintPath: require.resolve('eslint'),
             formatter: require.resolve('@lcooper/webpack-messages/eslint-formatter'),

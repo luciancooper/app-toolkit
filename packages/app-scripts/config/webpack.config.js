@@ -15,7 +15,10 @@ const path = require('path'),
 
 function checkStylelint() {
     // check for any scss / sass files
-    const files = globby.sync(path.join(config.source, '**/*.s(a|c)ss'));
+    const files = globby.sync(
+        (Array.isArray(config.source) ? config.source : [config.source])
+            .map((src) => path.join(src, '**/*.s(a|c)ss')),
+    );
     // if no scss files are found, return false
     if (!files.length) return false;
     // create a synchronous cosmiconfig explorer instance and ensure a config exists for each file
@@ -310,7 +313,6 @@ module.exports = (mode) => ({
                                 loader: require.resolve('resolve-url-loader'),
                                 options: {
                                     sourceMap: true,
-                                    root: config.source,
                                 },
                             },
                             {
@@ -368,7 +370,6 @@ module.exports = (mode) => ({
         )),
         // Apply eslint to all js code
         new ESLintPlugin({
-            context: config.source,
             extensions: ['js', 'mjs', 'jsx'],
             eslintPath: require.resolve('eslint'),
             formatter: require.resolve('@lcooper/webpack-messages/eslint-formatter'),

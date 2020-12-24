@@ -78,7 +78,9 @@ if (fs.existsSync(paths.configPath)) {
 }
 
 module.exports = {
-    source: path.resolve(paths.root, config.source),
+    source: Array.isArray(config.source)
+        ? config.source.map((src) => path.resolve(paths.root, src))
+        : path.resolve(paths.root, config.source),
     output: path.resolve(paths.root, config.output),
     target: config.target,
     publicPath: config.publicPath,

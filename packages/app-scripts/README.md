@@ -66,6 +66,15 @@ module.exports = {
 
 The `app.config.js` file in the example above represents an application with three pages: `index`, `admin`, and `about`. Since no page template is specified for the `about` page, the `src/index.html` base template will be used as a fallback.
 
+### Additional config options
+
+| Field        | Default  | Description                                                                                        |
+|:-------------|:--------:|:---------------------------------------------------------------------------------------------------|
+| `source`     | `'src'`  | source file directory, or an array of source file directories                                      |
+| `output`     | `'dist'` | webpack [`output.path`](https://webpack.js.org/configuration/output/#outputpath) directory         |
+| `publicPath` | `'/'`    | webpack [`output.publicPath`](https://webpack.js.org/configuration/output/#outputpublicpath) value |
+| `target`     | `'web'`  | webpack [`target`](https://webpack.js.org/configuration/target/) environment                       |
+
 ## Scripts
 
 ### `build`

@@ -1,6 +1,6 @@
 {
   "name": "@lcooper/dev-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Webpack development server with HMR and an error overlay",
   "main": "server.js",
   "files": [
@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/luciancooper/app-toolkit/tree/master/packages/dev-server#readme",
   "dependencies": {
-    "@lcooper/dev-overlay": "0.0.2",
+    "@lcooper/dev-overlay": "0.0.3",
     "@lcooper/webpack-messages": "0.0.0",
     "better-opn": "^2.1.1",
     "chalk": "^4.1.0",

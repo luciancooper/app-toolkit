@@ -48,7 +48,7 @@ If a single page appliation meets your needs, get started by editing:
  * `src/index.js` - the javascript entry point for your app
  * `src/index.html` - the page template for your app
 
-To configure a multi page application, you'll have to edit the `app.config.js` file. More information can be found [here](https://github.com/luciancooper/app-toolkit/tree/master/packages/app-scripts#configuration).
+To configure a multi page application, you'll have to edit the `app.config.js` file. More information can be found [here](https://github.com/luciancooper/app-toolkit/tree/main/packages/app-scripts#configuration).
 
 ## Scripts
 

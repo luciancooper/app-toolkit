@@ -33,7 +33,7 @@
   "bugs": {
     "url": "https://github.com/luciancooper/app-toolkit/issues"
   },
-  "homepage": "https://github.com/luciancooper/app-toolkit/tree/master/packages/dev-server#readme",
+  "homepage": "https://github.com/luciancooper/app-toolkit/tree/main/packages/dev-server#readme",
   "dependencies": {
     "@lcooper/dev-overlay": "0.0.3",
     "@lcooper/webpack-messages": "0.0.0",

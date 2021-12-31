@@ -34,7 +34,7 @@
   "bugs": {
     "url": "https://github.com/luciancooper/app-toolkit/issues"
   },
-  "homepage": "https://github.com/luciancooper/app-toolkit/tree/master/packages/app-scripts#readme",
+  "homepage": "https://github.com/luciancooper/app-toolkit/tree/main/packages/app-scripts#readme",
   "dependencies": {
     "@babel/core": "^7.12.10",
     "@babel/plugin-transform-runtime": "^7.12.10",

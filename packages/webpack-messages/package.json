@@ -1,6 +1,6 @@
 {
   "name": "@lcooper/webpack-messages",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Webpack error and warning message formatter",
   "main": "index.js",
   "types": "index.d.ts",

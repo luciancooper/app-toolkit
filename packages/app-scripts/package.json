@@ -1,6 +1,6 @@
 {
   "name": "@lcooper/app-scripts",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Configuration and scripts for js web apps",
   "main": "index.js",
   "bin": {
@@ -41,8 +41,8 @@
     "@babel/preset-env": "^7.12.11",
     "@babel/preset-react": "^7.12.10",
     "@babel/runtime": "^7.12.5",
-    "@lcooper/dev-server": "0.0.2",
-    "@lcooper/webpack-messages": "0.0.0",
+    "@lcooper/dev-server": "0.1.0",
+    "@lcooper/webpack-messages": "0.1.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",
     "@svgr/webpack": "^5.5.0",
     "babel-loader": "^8.2.2",

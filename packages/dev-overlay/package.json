@@ -1,6 +1,6 @@
 {
   "name": "@lcooper/dev-overlay",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A development overlay for displaying errors and warnings in the browser",
   "main": "dist/index.js",
   "files": [
@@ -38,7 +38,7 @@
     "@babel/preset-react": "^7.12.10",
     "@babel/runtime": "^7.12.5",
     "@lcooper/sass-utils": "^1.0.1",
-    "@lcooper/webpack-messages": "0.0.0",
+    "@lcooper/webpack-messages": "0.1.0",
     "babel-loader": "^8.2.2",
     "chalk": "^4.1.0",
     "chokidar": "^3.4.3",

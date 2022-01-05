@@ -3026,11 +3026,6 @@ babel-plugin-dynamic-import-node@^2.3.3:
   dependencies:
     object.assign "^4.1.0"
 
-babel-plugin-named-asset-import@^0.3.7:
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/babel-plugin-named-asset-import/-/babel-plugin-named-asset-import-0.3.7.tgz#156cd55d3f1228a5765774340937afc8398067dd"
-  integrity sha512-squySRkf+6JGnvjoUtDEjSREJEBirnXi9NqP6rjSYsylxQxqBTz+pkmf395i9E2zsvmYUaI40BHo6SqZUdydlw==
-
 babel-plugin-polyfill-corejs2@^0.3.0:
   version "0.3.0"
   resolved "https://registry.npmjs.org/babel-plugin-polyfill-corejs2/-/babel-plugin-polyfill-corejs2-0.3.0.tgz#407082d0d355ba565af24126fb6cb8e9115251fd"

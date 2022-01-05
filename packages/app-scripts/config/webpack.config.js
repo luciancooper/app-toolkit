@@ -120,6 +120,7 @@ module.exports = (mode) => ({
                     // load svg assets
                     {
                         test: /\.svg$/,
+                        issuer: { not: [/\.(js|jsx|mjs)$/] },
                         type: 'asset',
                         generator: {
                             dataUrl: (content) => svgToMiniDataURI(content.toString()),
@@ -140,6 +141,25 @@ module.exports = (mode) => ({
                             filename: (mode === 'production')
                                 ? 'assets/fonts/[name].[contenthash:8][ext]'
                                 : 'assets/fonts/[name][ext]',
+                        },
+                    },
+                    // load svg assets from js src files
+                    {
+                        test: /\.svg$/,
+                        issuer: /\.(?:js|jsx|mjs)$/,
+                        loader: require.resolve('@svgr/webpack'),
+                        options: {
+                            // don't use prettier to format output
+                            prettier: false,
+                            // configure svgo
+                            svgoConfig: {
+                                plugins: [{
+                                    name: 'removeViewBox',
+                                    active: false,
+                                }],
+                            },
+                            // forward ref to the root SVG tag
+                            ref: true,
                         },
                     },
                     // process source js
@@ -165,16 +185,6 @@ module.exports = (mode) => ({
                                         absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
                                         // eslint-disable-next-line @lcooper/global-require
                                         version: require('@babel/runtime/package.json').version,
-                                    },
-                                ],
-                                [
-                                    require.resolve('babel-plugin-named-asset-import'),
-                                    {
-                                        loaderMap: {
-                                            svg: {
-                                                ReactComponent: `${require.resolve('@svgr/webpack')}?+ref![path]`,
-                                            },
-                                        },
                                     },
                                 ],
                                 (mode === 'development') && require.resolve('react-refresh/babel'),

@@ -47,16 +47,14 @@ module.exports = {
                     // overlay script
                     {
                         test: /overlay\.(?:js|css)$/,
-                        use: 'raw-loader',
+                        type: 'asset/source',
                     },
                     // process svg
                     {
                         test: /\.svg$/,
-                        loader: 'url-loader',
-                        options: {
-                            generator(content) {
-                                return svgToMiniDataURI(content.toString());
-                            },
+                        type: 'asset/inline',
+                        generator: {
+                            dataUrl: (content) => svgToMiniDataURI(content.toString()),
                         },
                     },
                     // resolve wasm files

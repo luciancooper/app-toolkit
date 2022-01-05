@@ -41,17 +41,17 @@
   "devDependencies": {
     "@commitlint/cli": "^11.0.0",
     "@lcooper/commitlint-config": "^1.1.0",
-    "@lcooper/eslint-config": "^1.1.3",
-    "@lcooper/eslint-config-react": "^1.1.2",
+    "@lcooper/eslint-config": "^2.2.1",
+    "@lcooper/eslint-config-react": "^2.2.1",
     "@lcooper/stylelint-config-scss": "^1.0.1",
-    "eslint": "^7.16.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsdoc": "^30.7.9",
-    "eslint-plugin-react": "^7.21.5",
-    "eslint-plugin-react-hooks": "^4.2.0",
+    "eslint": "^8.6.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-jsdoc": "^37.5.1",
+    "eslint-plugin-react": "^7.28.0",
+    "eslint-plugin-react-hooks": "^4.3.0",
     "husky": "^4.3.6",
     "lerna": "^3.22.1",
     "lint-staged": "^10.5.3",
-    "stylelint": "^13.8.0"
+    "stylelint": "^14.2.0"
   }
 }

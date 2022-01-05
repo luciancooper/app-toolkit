@@ -62,7 +62,7 @@ module.exports = (config, {
     // inject stylelint-formatter into stylelint-webpack-plugin if present
     const stylelintPlugin = config.plugins.find((plugin) => plugin.constructor.name === 'StylelintWebpackPlugin');
     if (stylelintPlugin) {
-        // eslint-disable-next-line global-require
+        // eslint-disable-next-line @lcooper/global-require
         stylelintPlugin.options.formatter = require('@lcooper/webpack-messages/stylelint-formatter');
     }
 
@@ -79,7 +79,6 @@ module.exports = (config, {
     // instantiate webpack-dev-middleware
     const middleware = webpackDevMiddleware(compiler, {
             publicPath: config.output.publicPath,
-            logLevel: 'silent',
         }),
         // create express router
         router = express.Router();

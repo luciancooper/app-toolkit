@@ -6,7 +6,7 @@ const path = require('path'),
     StylelintPlugin = require('stylelint-webpack-plugin'),
     TerserPlugin = require('terser-webpack-plugin'),
     MiniCssExtractPlugin = require('mini-css-extract-plugin'),
-    OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin'),
+    CssMinimizerPlugin = require('css-minimizer-webpack-plugin'),
     { HotModuleReplacementPlugin } = require('webpack'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
     svgToMiniDataURI = require('mini-svg-data-uri'),
@@ -59,13 +59,16 @@ module.exports = (mode) => ({
         chunkFilename: (mode === 'production')
             ? 'assets/[name].[contenthash:8].chunk.js'
             : 'assets/[name].chunk.js',
+        assetModuleFilename: (mode === 'production')
+            ? 'assets/static/[name].[contenthash:8][ext][query]'
+            : 'assets/static/[name][ext][query]',
         publicPath: (mode === 'development') ? '/' : config.publicPath,
     },
+    stats: 'none',
     optimization: {
         minimize: (mode === 'production'),
         minimizer: [
             new TerserPlugin({
-                sourceMap: true,
                 terserOptions: {
                     compress: {
                         warnings: false,
@@ -78,22 +81,13 @@ module.exports = (mode) => ({
                 },
                 extractComments: false,
             }),
-            new OptimizeCSSAssetsPlugin({
-                cssProcessorOptions: {
-                    map: {
-                        inline: false,
-                    },
-                },
-            }),
+            new CssMinimizerPlugin(),
         ],
         splitChunks: {
             chunks: 'all',
             cacheGroups: {
-                vendor: {
-                    test: /[\\/]node_modules[\\/]/,
-                    chunks: 'initial',
+                defaultVendors: {
                     name: 'vendor',
-                    enforce: true,
                 },
             },
         },
@@ -117,46 +111,35 @@ module.exports = (mode) => ({
                     // load img assets
                     {
                         test: /\.(?:bmp|gif|jpe?g|png)$/,
-                        loader: require.resolve('url-loader'),
-                        options: {
+                        type: 'asset',
+                        parser: {
                             // set an inline size limit of 10 KB
-                            limit: 10 * 1024,
-                            // options for file-loader fallback
-                            name: (mode === 'production')
-                                ? '[name].[contenthash:8].[ext]'
-                                : '[name].[ext]',
-                            outputPath: 'assets/static',
+                            dataUrlCondition: { maxSize: 10 * 1024 },
                         },
                     },
                     // load svg assets
                     {
                         test: /\.svg$/,
+                        type: 'asset',
+                        generator: {
+                            dataUrl: (content) => svgToMiniDataURI(content.toString()),
+                        },
+                        parser: {
+                            // set an inline size limit of 10 KB
+                            dataUrlCondition: { maxSize: 10 * 1024 },
+                        },
                         use: [
-                            {
-                                loader: require.resolve('url-loader'),
-                                options: {
-                                    // set an inline size limit of 10 KB
-                                    limit: 10 * 1024,
-                                    generator: (content) => svgToMiniDataURI(content.toString()),
-                                    // options for file-loader fallback
-                                    name: (mode === 'production')
-                                        ? '[name].[contenthash:8].[ext]'
-                                        : '[name].[ext]',
-                                    outputPath: 'assets/static',
-                                },
-                            },
                             require.resolve('svgo-loader'),
                         ],
                     },
                     // load font assets
                     {
                         test: /\.(?:woff2?|eot|ttf|otf)$/,
-                        loader: require.resolve('file-loader'),
-                        options: {
-                            name: (mode === 'production')
-                                ? '[name].[contenthash:8].[ext]'
-                                : '[name].[ext]',
-                            outputPath: 'assets/fonts',
+                        type: 'asset/resource',
+                        generator: {
+                            filename: (mode === 'production')
+                                ? 'assets/fonts/[name].[contenthash:8][ext]'
+                                : 'assets/fonts/[name][ext]',
                         },
                     },
                     // process source js
@@ -180,7 +163,7 @@ module.exports = (mode) => ({
                                     require.resolve('@babel/plugin-transform-runtime'),
                                     {
                                         absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
-                                        // eslint-disable-next-line global-require
+                                        // eslint-disable-next-line @lcooper/global-require
                                         version: require('@babel/runtime/package.json').version,
                                     },
                                 ],
@@ -218,7 +201,7 @@ module.exports = (mode) => ({
                                     require.resolve('@babel/plugin-transform-runtime'),
                                     {
                                         absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
-                                        // eslint-disable-next-line global-require
+                                        // eslint-disable-next-line @lcooper/global-require
                                         version: require('@babel/runtime/package.json').version,
                                     },
                                 ],
@@ -318,27 +301,17 @@ module.exports = (mode) => ({
                             {
                                 loader: require.resolve('sass-loader'),
                                 options: {
-                                    // eslint-disable-next-line global-require
+                                    // eslint-disable-next-line @lcooper/global-require
                                     implementation: require('sass'),
                                     sourceMap: true,
                                 },
                             },
                         ],
                     },
-                    // file-loader
+                    // load files
                     {
-                        loader: require.resolve('file-loader'),
-                        exclude: [
-                            /\.(js|mjs|jsx)$/,
-                            /\.html$/,
-                            /\.json$/,
-                        ],
-                        options: {
-                            name: (mode === 'production')
-                                ? '[name].[contenthash:8].[ext]'
-                                : '[name].[ext]',
-                            outputPath: 'assets/static',
-                        },
+                        type: 'asset/resource',
+                        exclude: [/\.(js|mjs|jsx|html|json)$/],
                     },
                 ],
             },
@@ -381,7 +354,7 @@ module.exports = (mode) => ({
                 stylelintPath: require.resolve('stylelint'),
                 files: '**/*.s(a|c)ss',
                 emitWarning: true,
-                // eslint-disable-next-line global-require
+                // eslint-disable-next-line @lcooper/global-require
                 formatter: require('@lcooper/webpack-messages/stylelint-formatter'),
             }),
         ] : [],

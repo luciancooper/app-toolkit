@@ -38,6 +38,6 @@
     "chalk": "^4.1.0"
   },
   "peerDependencies": {
-    "webpack": "4.x.x"
+    "webpack": "4.x.x || 5.x.x"
   }
 }

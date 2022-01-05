@@ -91,15 +91,15 @@ function highlight(code) {
     }).join('');
 }
 
-export default function CodeBlock({ start, source, line }) {
+const CodeBlock = ({ start, source, line }) => {
     const lines = highlight(source).split('\n');
     return (
         <pre className='code-block'>
-            {
-                lines.map((l, i) => (
-                    <li line={i + start} highlighted={i + start === line} innerHTML={l}/>
-                ))
-            }
+            {lines.map((l, i) => (
+                <li line={i + start} highlighted={i + start === line} innerHTML={l}/>
+            ))}
         </pre>
     );
-}
+};
+
+export default CodeBlock;

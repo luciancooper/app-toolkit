@@ -72,7 +72,7 @@ let config = {
 if (fs.existsSync(paths.configPath)) {
     config = {
         ...config,
-        // eslint-disable-next-line global-require, import/no-dynamic-require
+        // eslint-disable-next-line @lcooper/global-require, import/no-dynamic-require
         ...require(paths.configPath),
     };
 }

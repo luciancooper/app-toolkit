@@ -1,7 +1,7 @@
 import RuntimeError from '../components/RuntimeError';
 import './RuntimeErrorContainer.scss';
 
-export default function RuntimeErrorContainer({ errors, onClose }) {
+const RuntimeErrorContainer = ({ errors, onClose }) => {
     if (errors.length === 1) {
         const [error] = errors;
         return (
@@ -27,40 +27,33 @@ export default function RuntimeErrorContainer({ errors, onClose }) {
                 type='button'
                 className='arrow-btn left'
                 disabled={currentIndex === 0}
-                onClick={
-                    () => {
-                        errorElements[currentIndex].style.display = 'none';
-                        errorElements[currentIndex - 1].style.display = '';
-                        currentIndex -= 1;
-                        arrowLeft.disabled = currentIndex === 0;
-                        arrowRight.disabled = false;
-                        errorIndexLabel.textContent = currentIndex + 1;
-                    }
-                }
+                onClick={() => {
+                    errorElements[currentIndex].style.display = 'none';
+                    errorElements[currentIndex - 1].style.display = '';
+                    currentIndex -= 1;
+                    arrowLeft.disabled = currentIndex === 0;
+                    arrowRight.disabled = false;
+                    errorIndexLabel.textContent = currentIndex + 1;
+                }}
             />,
             <button
                 type='button'
                 className='arrow-btn right'
                 disabled={currentIndex === length - 1}
-                onClick={
-                    () => {
-                        errorElements[currentIndex].style.display = 'none';
-                        errorElements[currentIndex + 1].style.display = '';
-                        currentIndex += 1;
-                        arrowLeft.disabled = false;
-                        arrowRight.disabled = currentIndex === length - 1;
-                        errorIndexLabel.textContent = currentIndex + 1;
-                    }
-                }
+                onClick={() => {
+                    errorElements[currentIndex].style.display = 'none';
+                    errorElements[currentIndex + 1].style.display = '';
+                    currentIndex += 1;
+                    arrowLeft.disabled = false;
+                    arrowRight.disabled = currentIndex === length - 1;
+                    errorIndexLabel.textContent = currentIndex + 1;
+                }}
             />,
         ];
 
     return (
         <section className='runtime-errors'>
-            <span
-                className='close-button'
-                onClick={onClose}
-            />
+            <span className='close-button' onClick={onClose}/>
             <div className='runtime-errors-header'>
                 <div className='error-pagination'>
                     {arrowLeft}
@@ -76,4 +69,6 @@ export default function RuntimeErrorContainer({ errors, onClose }) {
             </section>
         </section>
     );
-}
+};
+
+export default RuntimeErrorContainer;

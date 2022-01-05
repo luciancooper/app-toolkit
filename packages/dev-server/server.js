@@ -44,7 +44,7 @@ module.exports = class {
      * @param {boolean} [options.open=true] - open browser on server start
      * @param {Function} cb - function to call when server starts listening
      */
-    async listen({ port = 3000, open = true } = {}, cb) {
+    async listen({ port = 3000, open = true } = {}, cb = null) {
         const openPort = await choosePort(port);
         this.server.listen(openPort, () => {
             // execute callback

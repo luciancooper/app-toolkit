@@ -1,7 +1,7 @@
 import CodeBlock from './CodeBlock';
 import './RuntimeError.scss';
 
-function StackFrame({ fn, compiled, src }) {
+const StackFrame = ({ fn, compiled, src }) => {
     const { file, loc: [line, col], ctx } = src || compiled;
     // determine location string
     let loc,
@@ -26,19 +26,17 @@ function StackFrame({ fn, compiled, src }) {
             {code}
         </div>
     );
-}
+};
 
-export default function RuntimeError({
+const RuntimeError = ({
     record: { error, isUnhandledRejection, stackFrames },
     hidden = false,
-}) {
+}) => {
     let { name, message } = error;
     if (/^\w*:/.test(message)) {
         ({ 1: name, 2: message } = message.match(/^(\w+): *(.*)$/));
     } else {
-        name = isUnhandledRejection
-            ? `Unhandled Rejection (${name})`
-            : name;
+        name = isUnhandledRejection ? `Unhandled Rejection (${name})` : name;
     }
     return (
         <div className='runtime-error' style={(hidden ? { display: 'none' } : {})}>
@@ -51,4 +49,6 @@ export default function RuntimeError({
             </div>
         </div>
     );
-}
+};
+
+export default RuntimeError;

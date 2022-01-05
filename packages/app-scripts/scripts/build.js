@@ -40,6 +40,7 @@ try {
 
 // create webpack compiler instance
 let compiler;
+
 try {
     compiler = webpack(config);
 } catch ({ message }) {

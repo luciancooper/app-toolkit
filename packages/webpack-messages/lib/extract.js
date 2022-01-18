@@ -1,4 +1,5 @@
-const RequestShortener = require('webpack/lib/RequestShortener');
+const RequestShortener = require('webpack/lib/RequestShortener'),
+    tsError = require('./tsError');
 
 const requestShortener = new RequestShortener(process.cwd());
 
@@ -79,6 +80,10 @@ function isEslintError({ originalError: { name, message } }) {
 
 function isStylelintError({ name, message }) {
     return name === 'StylelintError' && /^lintdata:/.test(message.trim());
+}
+
+function isTypescriptError({ webpackError }) {
+    return !!(webpackError && webpackError.issue && webpackError.constructor.name === 'IssueWebpackError');
 }
 
 function isModuleNotFoundError({ name, message, webpackError: { dependencies } }) {
@@ -184,12 +189,14 @@ function transformErrors(webpackErrors) {
             moduleNotFoundErrors,
             eslintErrors,
             stylelintErrors,
+            typescriptErrors,
             uncategorized,
         ] = filterChain(errors, [
             isSyntaxError,
             isModuleNotFoundError,
             isEslintError,
             isStylelintError,
+            isTypescriptError,
         ]);
     return [
         // transform syntax errors
@@ -220,6 +227,9 @@ function transformErrors(webpackErrors) {
 
         // transform linting errors
         groupLintErrors(eslintErrors, stylelintErrors),
+
+        // transform typescript errors
+        ...typescriptErrors.map(({ webpackError: { issue } }) => tsError(issue)),
 
         // transform uncategorized errors
         ...uncategorized.map(({

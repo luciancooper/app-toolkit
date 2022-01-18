@@ -12,10 +12,25 @@ let iframe = null,
     messageBanner = null,
     warningButton = null,
     warningsMinimized = true,
+    /**
+     * Mode Flag:
+     * • -1 : Compiling
+     * •  0 : Build Warning/Error Free
+     * •  1 : Warnings Minimized
+     * •  2 : Warnings
+     * •  3 : Compile Errors
+     */
     currentMode = -1,
     deferredRender = null,
     currentBuildData = null,
     runtimeErrors = [];
+
+function extractProblems({ errors, warnings, tsc }) {
+    return [
+        errors,
+        tsc ? [...warnings, ...(tsc.errors || []), ...(tsc.warnings || [])] : warnings,
+    ];
+}
 
 /**
  * Ensures the iframe is ready before running a render function, otherwise render will be deferred
@@ -112,7 +127,7 @@ function updateOverlay(render) {
             // update warnings minimized flag
             warningsMinimized = false;
             // render compile warnings
-            const { warnings } = currentBuildData;
+            const [, warnings] = extractProblems(currentBuildData);
             iframe.contentWindow.renderCompileWarnings(warnings);
             iframe.style.display = '';
         });
@@ -164,26 +179,25 @@ window.__overlayReady = () => {
     }
 };
 
-export function recompiling() {
-    updateOverlay(() => {
-        // set banner message
-        messageBanner.innerHTML = 'Recompiling...';
-        messageBanner.style.display = '';
-        // reset mode
-        currentMode = -1;
-    });
-}
-
 export function setBuildData(data) {
     currentBuildData = data;
     updateOverlay(() => {
+        // check if webpack is recompiling
+        if (currentBuildData.compiling) {
+            // set banner message
+            messageBanner.innerHTML = 'Compiling...';
+            messageBanner.style.display = '';
+            // reset mode
+            currentMode = -1;
+            return;
+        }
         // hide the message banner
         messageBanner.innerHTML = '';
         messageBanner.style.display = 'none';
         // hide the warning icon
         warningButton.style.display = 'none';
 
-        const { errors, warnings } = currentBuildData;
+        const [errors, warnings] = extractProblems(currentBuildData);
         // check for errors
         if (errors.length) {
             iframe.contentWindow.renderCompileErrors(errors);

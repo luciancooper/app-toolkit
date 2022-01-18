@@ -130,4 +130,24 @@
             --padding-top: 1em;
         }
     }
+
+    &.typescript {
+        .location {
+            > .file {
+                color: var(--blue);
+            }
+
+            > .file-loc {
+                color: var(--yellow);
+            }
+        }
+
+        .code {
+            color: var(--text-dim);
+
+            + .message {
+                margin-left: 1em;
+            }
+        }
+    }
 }

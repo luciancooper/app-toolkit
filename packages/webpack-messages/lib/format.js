@@ -52,6 +52,15 @@ function formatErrors(errors) {
                 );
                 break;
             }
+            case 'tsc': {
+                let file = chalk.blue(error.relativeFile);
+                if (error.location) {
+                    const { start: { line, column } } = error.location;
+                    file += chalk`:{yellow ${line}}:{yellow ${column}}`;
+                }
+                formatted.push(chalk`${file}\n{dim ${error.code}:} ${error.message}`);
+                break;
+            }
             case 'lint-errors': {
                 const { linters } = error,
                     // find max line, column, and message string width for all linting errors

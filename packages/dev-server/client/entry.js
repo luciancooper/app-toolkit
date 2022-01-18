@@ -36,38 +36,56 @@ const {
 let isUnloading = false;
 
 function processMessage({ action, ...data }) {
-    // action is either 'building', 'built', or 'sync'
-    if (action === 'building') {
-        console.log(`[dev-server] bundle ${data.name ? `'${data.name}' ` : ''}rebuilding`);
-        overlay.recompiling();
-        return;
-    }
-    if (action === 'built') {
-        console.log(`[dev-server] bundle ${data.name ? `'${data.name}' ` : ''}rebuilt in ${data.time}ms`);
-    }
-    // pass data to overlay
+    // pass build data to overlay
     overlay.setBuildData(data);
+    // log status updates to console (action is either 'invalid', 'done', 'sync', or 'typescript')
+    const bundleName = data.name ? `'${data.name}' ` : '';
 
-    const { name, errors, warnings } = data;
-    // check for errors
-    if (errors && errors.length > 0) {
-        // report errors and exit, do not apply update
-        console.error(
-            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${errors.length} error${errors.length > 1 ? 's' : ''}`,
-            'color:#ff0000',
-        );
-        return;
+    switch (action) {
+        case 'invalid':
+            console.log(`[dev-server] bundle ${bundleName}rebuilding`);
+            break;
+        case 'typescript': {
+            // log typescript errors / warnings
+            const { errors, warnings } = data.tsc;
+            if (errors.length > 0) {
+                console.error(
+                    `%c[dev-server] bundle ${bundleName}has ${errors.length} TypeScript error(s)`,
+                    'color:#ff0000',
+                );
+            } else if (warnings.length > 0) {
+                console.warn(
+                    `%c[dev-server] bundle ${bundleName}has ${warnings.length} TypesScript warning(s)`,
+                    'color:#999933',
+                );
+            }
+            break;
+        }
+        case 'done':
+            console.log(`[dev-server] bundle ${data.name ? `'${data.name}' ` : ''}rebuilt in ${data.time}ms`);
+        // eslint-disable-next-line no-fallthrough
+        default: {
+            const { errors, warnings } = data;
+            // check for errors
+            if (errors && errors.length > 0) {
+                // report errors and exit, do not apply update
+                console.error(
+                    `%c[dev-server] bundle ${bundleName}has ${errors.length} error(s)`,
+                    'color:#ff0000',
+                );
+                return;
+            }
+            // log warnings to console
+            if (warnings && warnings.length > 0) {
+                console.warn(
+                    `%c[dev-server] bundle ${bundleName}has ${warnings.length} warning(s)`,
+                    'color:#999933',
+                );
+            }
+            if (isUnloading) return;
+            hotEmitter.emit('webpackHotUpdate', data.hash);
+        }
     }
-    // check for warnings
-    if (warnings && warnings.length > 0) {
-        // log warnings to console
-        console.warn(
-            `%c[dev-server] bundle${name ? ` '${name}' ` : ''} has ${warnings.length} warning${warnings.length > 1 ? 's' : ''}`,
-            'color:#999933',
-        );
-    }
-    if (isUnloading) return;
-    hotEmitter.emit('webpackHotUpdate', data.hash);
 }
 
 function connect() {

@@ -1,16 +1,16 @@
 const path = require('path'),
     fs = require('fs'),
-    paths = require('./paths');
+    { root, configPath } = require('./paths');
 
 // resolve file paths in the same order as webpack
 function resolveModule(file) {
     // check if file extension has already been specified
-    if (path.extname(file)) return path.resolve(paths.root, file);
+    if (path.extname(file)) return path.resolve(root, file);
     // else determine extension
     const extension = ['mjs', 'js', 'jsx'].find((ext) => (
-        fs.existsSync(path.resolve(paths.root, `${file}.${ext}`))
+        fs.existsSync(path.resolve(root, `${file}.${ext}`))
     )) || 'js';
-    return path.resolve(paths.root, `${file}.${extension}`);
+    return path.resolve(root, `${file}.${extension}`);
 }
 
 function uniquePageName(name, pages) {
@@ -28,7 +28,7 @@ function resolvePages({ entry, html, pages }) {
         return [{
             name: 'index',
             entry: resolveModule(entry || 'src/index'),
-            html: path.resolve(paths.root, html),
+            html: path.resolve(root, html),
         }];
     }
     const pageArray = (Array.isArray(pages) && pages) || (
@@ -50,15 +50,29 @@ function resolvePages({ entry, html, pages }) {
         acc.push({
             name: uniquePageName(name, acc),
             entry: resolveModule(pageEntry),
-            html: path.resolve(paths.root, pageHtml),
+            html: path.resolve(root, pageHtml),
         });
         // return accumulator
         return acc;
     }, (entry && typeof entry === 'string') ? [{
         name: 'index',
         entry: resolveModule(entry),
-        html: path.resolve(paths.root, html),
+        html: path.resolve(root, html),
     }] : []);
+}
+
+function detectTypescript(providedTsConfig) {
+    if (providedTsConfig) {
+        return {
+            ts: true,
+            tsConfig: path.resolve(root, providedTsConfig),
+        };
+    }
+    const tsConfig = path.resolve(root, './tsconfig.json');
+    return {
+        ts: fs.existsSync(tsConfig),
+        tsConfig,
+    };
 }
 
 let config = {
@@ -69,20 +83,21 @@ let config = {
     html: 'src/index.html',
 };
 
-if (fs.existsSync(paths.configPath)) {
+if (fs.existsSync(configPath)) {
     config = {
         ...config,
         // eslint-disable-next-line @lcooper/global-require, import/no-dynamic-require
-        ...require(paths.configPath),
+        ...require(configPath),
     };
 }
 
 module.exports = {
     source: Array.isArray(config.source)
-        ? config.source.map((src) => path.resolve(paths.root, src))
-        : path.resolve(paths.root, config.source),
-    output: path.resolve(paths.root, config.output),
+        ? config.source.map((src) => path.resolve(root, src))
+        : path.resolve(root, config.source),
+    output: path.resolve(root, config.output),
     target: config.target,
     publicPath: config.publicPath,
     pages: resolvePages(config),
+    ...detectTypescript(config.tsConfig),
 };

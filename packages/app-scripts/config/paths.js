@@ -1,7 +1,10 @@
 const path = require('path'),
     fs = require('fs');
 
-const root = fs.realpathSync(process.cwd()),
-    configPath = path.resolve(root, './app.config.js');
+const root = fs.realpathSync(process.cwd());
 
-module.exports = { root, configPath };
+module.exports = {
+    root,
+    nodeModules: path.resolve(root, './node_modules'),
+    configPath: path.resolve(root, './app.config.js'),
+};

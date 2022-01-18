@@ -1,4 +1,5 @@
 const extract = require('./lib/extract'),
+    tsError = require('./lib/tsError'),
     format = require('./lib/format');
 
 /**
@@ -9,4 +10,5 @@ const extract = require('./lib/extract'),
 module.exports = (stats) => format(extract(stats));
 
 module.exports.extract = extract;
+module.exports.tsError = tsError;
 module.exports.format = format;

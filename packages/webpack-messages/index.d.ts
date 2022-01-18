@@ -22,6 +22,38 @@ export interface LinterErrorReport {
     files: LinterFileReport[]
 }
 
+interface TSIssuePosition {
+    line: number
+    column: number
+}
+
+interface TSIssueLocation {
+    start: TSIssuePosition
+    end: TSIssuePosition
+}
+
+interface TSIssue {
+    origin: 'typescript' | 'eslint'
+    severity: 'error' | 'warning'
+    code: string
+    message: string
+    file?: string
+    location?: TSIssueLocation
+}
+
+export interface TSErrorData extends TSIssue {
+    type: 'tsc'
+    relativeFile?: string
+}
+
+/**
+ * Create a TypeScript error data object from a TypeScript issue
+ *
+ * @param issue - A TypeScript issue object
+ * @returns TypeScript error data
+ */
+export function tsError(issue: TSIssue): TSErrorData;
+
 export type ErrorData = {
     type?: 'syntax-error'
     file: string
@@ -34,7 +66,7 @@ export type ErrorData = {
 } | {
     type: 'lint-errors'
     linters: LinterErrorReport[]
-}
+} | TSIErrorData
 
 export interface MessageData {
     errors: ErrorData[]

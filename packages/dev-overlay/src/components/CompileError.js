@@ -58,10 +58,44 @@ const LintingErrors = ({ level, linters }) => (
     </table>
 );
 
+const TypeScriptError = ({
+    severity,
+    code,
+    message,
+    relativeFile,
+    location,
+}) => {
+    const loc = location ? (
+        <span className='location'>
+            <span className='file'>{relativeFile}</span>
+            :
+            <span className='file-loc'>{location.start.line}</span>
+            :
+            <span className='file-loc'>{location.start.column}</span>
+        </span>
+    ) : (
+        <span className='location'>
+            <span className='file'>{relativeFile}</span>
+        </span>
+    );
+    return (
+        <div className='compile-error typescript'>
+            <header>
+                <Badge type={severity}/>
+                {loc}
+            </header>
+            <div>
+                <span className='code'>{`${code}:`}</span>
+                <span className='message'>{message}</span>
+            </div>
+        </div>
+    );
+};
+
 const CompileError = ({ level, type, ...data }) => {
     switch (type) {
+        // module not found error
         case 'module-not-found-error':
-            // module not found error
             return (
                 <div className='compile-error module-not-found'>
                     <header>
@@ -89,15 +123,18 @@ const CompileError = ({ level, type, ...data }) => {
                     )}
                 </div>
             );
+        // linting errors
         case 'lint-errors':
-            // linting errors
             return (
                 <div className='compile-error'>
                     <LintingErrors level={level} {...data}/>
                 </div>
             );
+        // typescript errors
+        case 'tsc':
+            return <TypeScriptError {...data}/>;
+        // all other error types
         default:
-            // all other error types
             return (
                 <div className='compile-error'>
                     <header>

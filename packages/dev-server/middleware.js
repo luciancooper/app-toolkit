@@ -7,22 +7,45 @@ const express = require('express'),
     chalk = require('chalk'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
+    ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin'),
     webpackMessages = require('@lcooper/webpack-messages'),
     clearConsole = require('./lib/clear-console'),
     prependEntry = require('./lib/prepend-entry');
 
-function extractStats(stats) {
-    const { hash, startTime, endTime } = stats,
-        time = endTime - startTime,
-        name = stats.name || (stats.compilation && stats.compilation.name) || '',
+function addCompilationResults(latest, stats, usingTypescript) {
+    const info = {
+        // get compilation hash
+        hash: stats.hash,
+        // calculate compilation time
+        time: stats.endTime - stats.startTime,
+        // get compilation name
+        name: stats.name || (stats.compilation && stats.compilation.name) || '',
         // extract errors & warnings
-        { errors, warnings } = webpackMessages.extract(stats);
+        ...webpackMessages.extract(stats),
+    };
+    return (latest.hash && latest.hash !== info.hash) ? {
+        ...info,
+        compiling: false,
+        awaitingTypeCheck: usingTypescript,
+    } : {
+        ...latest,
+        ...info,
+        compiling: false,
+    };
+}
+
+function addTypescriptResults(latest, issues, compilation) {
+    if (latest.hash && latest.hash !== compilation.hash) {
+        throw new Error('TypeScript results out of sync with compilation');
+    }
     return {
-        name,
-        time,
-        hash,
-        errors,
-        warnings,
+        ...latest,
+        hash: compilation.hash,
+        tsc: {
+            errors: issues.filter(({ severity }) => severity === 'error').map(webpackMessages.tsError),
+            warnings: issues.filter(({ severity }) => severity === 'warning').map(webpackMessages.tsError),
+        },
+        awaitingTypeCheck: false,
     };
 }
 
@@ -65,7 +88,8 @@ module.exports = (config, {
         // eslint-disable-next-line @lcooper/global-require
         stylelintPlugin.options.formatter = require('@lcooper/webpack-messages/stylelint-formatter');
     }
-
+    // check if using typescript
+    const usingTypescript = config.plugins.some((plugin) => plugin.constructor.name === 'ForkTsCheckerWebpackPlugin');
     // create webpack compiler instance
     let compiler;
     try {
@@ -95,37 +119,75 @@ module.exports = (config, {
         });
     }, heartbeat).unref();
 
-    // stash last stats object
-    let latestStats = null,
+    // set latest results object
+    let latest = { hash: null, compiling: true, awaitingTypeCheck: usingTypescript },
         // can't remove compiler hooks, so we just set a flag and noop if closed
         closed = false;
 
+    if (usingTypescript) {
+        // set up fork-ts-checker-webpack-plugin hooks
+        const hooks = ForkTsCheckerWebpackPlugin.getCompilerHooks(compiler);
+
+        // add hook to log message about waiting for ts results
+        hooks.waiting.tap('dev-server', (compilation) => {
+            console.log(chalk.cyan('Files successfully emitted, waiting for TypeScript results...'));
+        });
+
+        // issues hook fires when type check is complete
+        hooks.issues.tap('dev-server', (issues, compilation) => {
+            // check if server has been closed
+            if (closed) return [];
+            // augment latest stats object with ts issue results
+            let updated;
+            try {
+                updated = addTypescriptResults(latest, issues, compilation);
+            } catch (error) {
+                console.log(chalk`{red [ERROR]} ${error.message}`);
+                return [];
+            }
+            // store updated stats object so they can be propagated to new clients
+            latest = updated;
+            // format extracted typescript errors / warnings
+            const { errors, warnings } = webpackMessages.format(updated.tsc);
+            if (errors.length) {
+                console.log(chalk`{bold.red ${errors.length} TypeScript error(s):}\n${errors.join('')}`);
+            } else if (warnings.length) {
+                console.log(chalk`{bold.yellow ${warnings.length} TypeScript warning(s):}\n${warnings.join('')}`);
+            } else {
+                console.log(chalk.bold.green('TypeScript check passed'));
+            }
+            // publish updated object that include type check results
+            publish(responses, { action: 'typescript', ...updated });
+            return issues;
+        });
+    }
+
     // 'invalid' event fires when you have changed a file, and webpack is recompiling a bundle.
-    compiler.hooks.invalid.tap('invalid', () => {
+    compiler.hooks.invalid.tap('dev-server', () => {
         // check if server has been closed
         if (closed) return;
         // clear console if in iteractive mode
         if (interactive) clearConsole();
-        // clear latest stats
-        latestStats = null;
+        // clear latest results object
+        latest = { hash: null, compiling: true, awaitingTypeCheck: usingTypescript };
         // write message to console
         console.log('Compiling...');
-        // publish 'building' event
-        publish(responses, { action: 'building' });
+        // publish 'invalid' event
+        publish(responses, { action: 'invalid', ...latest });
     });
 
     // 'done' event fires when webpack has finished recompiling the bundle.
-    compiler.hooks.done.tap('done', (stats) => {
+    compiler.hooks.done.tap('dev-server', (stats) => {
         // check if server has been closed
         if (closed) return;
         // clear console if in iteractive mode
         if (interactive) clearConsole();
         // extract relevant data from stats
-        const extracted = extractStats(stats);
+        const updated = addCompilationResults(latest, stats, usingTypescript);
         // Keep hold of latest stats so they can be propagated to new clients
-        latestStats = extracted;
+        latest = updated;
         // format extracted errors / warnings
-        const { errors, warnings } = webpackMessages.format(extracted);
+        const { errors, warnings } = webpackMessages.format(updated);
         if (errors.length) {
             console.log(chalk`{bold.red Failed to compile.}\n${errors.join('')}`);
         } else if (warnings.length) {
@@ -134,10 +196,7 @@ module.exports = (config, {
             console.log(chalk.bold.green('Compiled successfully!'));
         }
         // publish build stats
-        publish(responses, {
-            action: 'built',
-            ...extracted,
-        });
+        publish(responses, { action: 'done', ...updated });
     });
 
     // add middleware to intercept requests to `path`
@@ -166,13 +225,8 @@ module.exports = (config, {
             const index = responses.findIndex((r) => r === res);
             if (index >= 0) responses.splice(index, 1);
         });
-        // publish latest stats if they exist
-        if (latestStats) {
-            publish(responses, {
-                action: 'sync',
-                ...latestStats,
-            });
-        }
+        // publish latest build object to new response
+        publish([res], { action: 'sync', ...latest });
     });
 
     // expose close method

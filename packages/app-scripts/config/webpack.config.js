@@ -9,8 +9,9 @@ const path = require('path'),
     CssMinimizerPlugin = require('css-minimizer-webpack-plugin'),
     { HotModuleReplacementPlugin } = require('webpack'),
     ReactRefreshPlugin = require('@pmmmwh/react-refresh-webpack-plugin'),
+    ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin'),
     svgToMiniDataURI = require('mini-svg-data-uri'),
-    { root } = require('./paths'),
+    { root, nodeModules } = require('./paths'),
     config = require('./app.config');
 
 function checkStylelint() {
@@ -95,14 +96,16 @@ module.exports = (mode) => ({
     resolve: {
         modules: [
             'node_modules',
-            path.resolve(root, 'node_modules'),
+            nodeModules,
         ],
         extensions: [
             '.mjs',
             '.js',
-            '.json',
             '.jsx',
-        ],
+            '.ts',
+            '.tsx',
+            '.json',
+        ].filter((ext) => config.ts || !ext.startsWith('.ts')),
     },
     module: {
         rules: [
@@ -120,7 +123,7 @@ module.exports = (mode) => ({
                     // load svg assets
                     {
                         test: /\.svg$/,
-                        issuer: { not: [/\.(js|jsx|mjs)$/] },
+                        issuer: { not: [/\.(js|jsx|mjs|ts|tsx)$/] },
                         type: 'asset',
                         generator: {
                             dataUrl: (content) => svgToMiniDataURI(content.toString()),
@@ -146,7 +149,7 @@ module.exports = (mode) => ({
                     // load svg assets from js src files
                     {
                         test: /\.svg$/,
-                        issuer: /\.(?:js|jsx|mjs)$/,
+                        issuer: /\.(?:js|jsx|mjs|ts|tsx)$/,
                         loader: require.resolve('@svgr/webpack'),
                         options: {
                             // don't use prettier to format output
@@ -164,7 +167,7 @@ module.exports = (mode) => ({
                     },
                     // process source js
                     {
-                        test: /\.(?:js|mjs|jsx)$/,
+                        test: /\.(?:js|mjs|jsx|ts|tsx)$/,
                         include: config.source,
                         loader: require.resolve('babel-loader'),
                         options: {
@@ -177,7 +180,10 @@ module.exports = (mode) => ({
                                 [require.resolve('@babel/preset-react'), {
                                     runtime: checkJsxRuntime() ? 'automatic' : 'classic',
                                 }],
-                            ],
+                                config.ts && [
+                                    require.resolve('@babel/preset-typescript'),
+                                ],
+                            ].filter(Boolean),
                             plugins: [
                                 [
                                     require.resolve('@babel/plugin-transform-runtime'),
@@ -321,7 +327,7 @@ module.exports = (mode) => ({
                     // load files
                     {
                         type: 'asset/resource',
-                        exclude: [/\.(js|mjs|jsx|html|json)$/],
+                        exclude: [/\.(js|mjs|jsx|ts|tsx|html|json)$/],
                     },
                 ],
             },
@@ -351,12 +357,38 @@ module.exports = (mode) => ({
                 } : {}),
             })
         )),
+        // Check types if using typescript
+        ...config.ts ? [
+            new ForkTsCheckerWebpackPlugin({
+                async: mode === 'development',
+                typescript: {
+                    context: root,
+                    configFile: config.tsConfig,
+                    typescriptPath: require.resolve('typescript', {
+                        paths: [nodeModules],
+                    }),
+                    configOverwrite: {
+                        compilerOptions: {
+                            skipLibCheck: true,
+                            sourceMap: mode === 'production',
+                            inlineSourceMap: false,
+                            declarationMap: false,
+                            noEmit: true,
+                        },
+                    },
+                },
+                logger: {
+                    issues: 'silent',
+                },
+            }),
+        ] : [],
         // Apply eslint to all js code
         new ESLintPlugin({
-            extensions: ['js', 'mjs', 'jsx'],
+            extensions: ['js', 'mjs', 'jsx', 'ts', 'tsx'],
             eslintPath: require.resolve('eslint'),
             formatter: require.resolve('@lcooper/webpack-messages/eslint-formatter'),
             emitWarning: true,
+            context: config.source,
         }),
         // Applies stylelint to all sass code
         ...checkStylelint() ? [

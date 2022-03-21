@@ -35,7 +35,8 @@
   },
   "homepage": "https://github.com/luciancooper/app-toolkit/tree/main/packages/webpack-messages#readme",
   "dependencies": {
-    "chalk": "^4.1.0"
+    "chalk": "^4.1.0",
+    "js-tokens": "^7.0.0"
   },
   "peerDependencies": {
     "webpack": "4.x.x || 5.x.x"

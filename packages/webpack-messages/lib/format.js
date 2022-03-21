@@ -1,5 +1,8 @@
 const chalk = require('chalk'),
-    stripAnsi = require('./utils/strip-ansi');
+    fs = require('fs'),
+    stripAnsi = require('./utils/strip-ansi'),
+    highlight = require('./utils/highlight'),
+    codeFrame = require('./utils/code-frame');
 
 /**
  * Format file path
@@ -31,9 +34,10 @@ function formatOrigin(origin) {
 /**
  * Transform errors into formatted readable output chunks
  * @param {Object[]} errors - array of error data objects
+ * @param {Object} sourceMap - absolute file paths mapped to highlighted source code
  * @returns {string[]} - array of readable output chunks
  */
-function formatErrors(errors) {
+function formatErrors(errors, sourceMap) {
     const formatted = [];
     // loop through each error data object
     errors.forEach(({ type, ...error }) => {
@@ -53,12 +57,17 @@ function formatErrors(errors) {
                 break;
             }
             case 'tsc': {
-                let file = chalk.blue(error.relativeFile);
+                let file = chalk.blue(error.relativeFile),
+                    message = chalk`{dim ${error.code}:} ${error.message}`;
                 if (error.location) {
                     const { start: { line, column } } = error.location;
                     file += chalk`:{yellow ${line}}:{yellow ${column}}`;
+                    // check if source map contains absolute file path
+                    if (sourceMap[error.file]) {
+                        message += `\n${codeFrame(sourceMap[error.file], error.location)}`;
+                    }
                 }
-                formatted.push(chalk`${file}\n{dim ${error.code}:} ${error.message}`);
+                formatted.push(`${file}\n\n${message}`);
                 break;
             }
             case 'lint-errors': {
@@ -142,11 +151,28 @@ function formatErrors(errors) {
  * @param {Object[]} data.warnings - extracted warning data
  * @returns {Object} - error & warning data as readable output chunks
  */
-module.exports = ({ errors, warnings }) => ({
-    errors: formatErrors(errors).map((chunk) => (
-        `\n${chalk.red.inverse(' ERROR ')} ${chunk}\n`
-    )),
-    warnings: formatErrors(warnings).map((chunk) => (
-        `\n${chalk.yellow.inverse(' WARNING ')} ${chunk}\n`
-    )),
-});
+module.exports = ({ errors, warnings }) => {
+    // create map of highlighted typescript source files
+    const sourceMap = [...errors, ...warnings]
+        .filter((e) => (e.type === 'tsc' && e.file))
+        .map(({ file }) => file)
+        // remove duplicate & non-existent files
+        .filter((file, i, files) => files.indexOf(file) === i && fs.existsSync(file))
+        // map file path to highlighted source
+        .reduce((acc, file) => {
+            const source = fs.readFileSync(file, 'utf-8')
+                // standardize line breaks
+                .replace(/\r\n|[\n\r\u2028\u2029]/g, '\n');
+            acc[file] = highlight(source);
+            return acc;
+        }, {});
+    // format errors and warnings
+    return {
+        errors: formatErrors(errors, sourceMap).map((chunk) => (
+            `\n${chalk.red.inverse(' ERROR ')} ${chunk}\n`
+        )),
+        warnings: formatErrors(warnings, sourceMap).map((chunk) => (
+            `\n${chalk.yellow.inverse(' WARNING ')} ${chunk}\n`
+        )),
+    };
+};

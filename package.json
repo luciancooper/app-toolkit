@@ -43,7 +43,7 @@
     "@lcooper/commitlint-config": "^1.1.0",
     "@lcooper/eslint-config": "^2.2.1",
     "@lcooper/eslint-config-react": "^2.2.1",
-    "@lcooper/stylelint-config-scss": "^1.0.1",
+    "@lcooper/stylelint-config-scss": "^1.1.1",
     "eslint": "^8.6.0",
     "eslint-plugin-import": "^2.25.4",
     "eslint-plugin-jsdoc": "^37.5.1",

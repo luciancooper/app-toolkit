@@ -1,103 +1,43 @@
-import jsTokens from 'js-tokens';
 import './CodeBlock.scss';
 
-const keywords = [
-    'break',
-    'case',
-    'catch',
-    'continue',
-    'debugger',
-    'default',
-    'do',
-    'else',
-    'finally',
-    'for',
-    'function',
-    'if',
-    'return',
-    'switch',
-    'throw',
-    'try',
-    'var',
-    'const',
-    'while',
-    'with',
-    'new',
-    'this',
-    'super',
-    'class',
-    'extends',
-    'export',
-    'import',
-    'null',
-    'true',
-    'false',
-    'in',
-    'instanceof',
-    'typeof',
-    'void',
-    'delete',
-    'await',
-    'enum',
-];
-
-function getTokenType({ type, value }) {
-    switch (type) {
-        case 'StringLiteral':
-            return 'string';
-        case 'RegularExpressionLiteral':
-            return 'regexp';
-        case 'MultiLineComment':
-        case 'SingleLineComment':
-            return 'comment';
-        case 'NumericLiteral':
-            return 'number';
-        case 'Punctuator':
-            return /^[()[\]{};.,]$/.test(value) ? 'punctuator' : 'operator';
-        case 'IdentifierName':
-            return keywords.includes(value) ? 'keyword' : 'identifier';
-        case 'Invalid':
-            return (value === '@' || value === '#') ? 'punctuator' : 'invalid';
-        case 'JSXString':
-            return 'string';
-        case 'JSXText':
-            return null;
-        case 'JSXPunctuator':
-            return /^[<>/]$/.test(value) ? 'jsx_tag' : /^[{}.]$/.test(value) ? 'punctuator' : 'operator';
-        case 'JSXIdentifier':
-            return 'jsx_id';
-        case 'JSXInvalid':
-            return (value === '@' || value === '#') ? 'punctuator' : 'invalid';
-        default:
-            return null;
-    }
-}
-
-/**
- * Highlight js code block.
- * @param {string} code - js code block
- * @returns {string} - highlighted js code block
- */
-function highlight(code) {
-    return Array.from(jsTokens(code, { jsx: true })).map((token) => {
-        const type = getTokenType(token);
-        if (type) {
-            return token.value
-                .split(/\r\n/)
-                .map((str) => `<span class='${type}'>${str}</span>`)
-                .join('\n');
-        }
-        return token.value;
-    }).join('');
-}
-
-const CodeBlock = ({ start, source, line }) => {
-    const lines = highlight(source).split('\n');
+const CodeBlock = ({
+    loc,
+    source,
+    linesAbove = 3,
+    linesBelow = 3,
+}) => {
+    const sourceLines = source.split('\n'),
+        { line: l1, column: c1 } = { line: -1, column: 0, ...loc.start },
+        { line: l2, column: c2 } = { line: l1, column: c1, ...loc.end },
+        start = Math.max(l1 - linesAbove, 1),
+        end = Math.min(l2 + linesBelow, sourceLines.length);
     return (
         <pre className='code-block'>
-            {lines.map((l, i) => (
-                <li line={i + start} highlighted={i + start === line} innerHTML={l}/>
-            ))}
+            {sourceLines.slice(start - 1, end).map((line, index) => {
+                const ln = start + index,
+                    marked = ln >= l1 && ln <= l2;
+                let marker = null;
+                if (marked && (l1 < l2 ? c1 : (c1 !== c2 || c1))) {
+                    const raw = line
+                            .replace(/(?:<span(?: class='[a-z-]+')>|<\/span>)/g, '')
+                            .replace(/&gt;/g, '>')
+                            .replace(/&lt;/g, '<'),
+                        [idx, len] = l1 === l2 ? [c1, Math.max(c2 - c1, 1)]
+                            : ln === l1 ? [c1, raw.length - c1 + 1] : [0, ln === l2 ? c2 : raw.length];
+                    marker = (
+                        <span className='marker'>
+                            {raw.slice(0, Math.max(idx - 1, 0)).replace(/[^\t]/g, ' ')}
+                            <span>{' '.repeat(len || 1)}</span>
+                        </span>
+                    );
+                }
+                return (
+                    <li line={ln} className={marked ? 'marked' : null}>
+                        {marker}
+                        <code innerHTML={line}/>
+                    </li>
+                );
+            })}
         </pre>
     );
 };

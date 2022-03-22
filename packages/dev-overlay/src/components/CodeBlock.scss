@@ -2,19 +2,18 @@
 
 $syntax-js: (
     'number':    hsl(212, 100%, 39%),
-    'regexp':    hsl(134, 60%, 33%),
+    'regex':    hsl(134, 60%, 33%),
     'string':    hsl(134, 60%, 33%),
     'comment':   hsl(88, 100%, 31%),
     'operator':  hsl(27, 76%, 53%),
     'punctuator':hsl(210, 12%, 16%),
     'keyword':   hsl(354, 66%, 54%),
     'identifier':hsl(210, 12%, 16%),
-    'jsx_tag':   hsl(27, 76%, 53%),
-    'jsx_id':    hsl(261, 51%, 51%),
+    'jsx-tag':   hsl(27, 76%, 53%),
+    'jsx-id':    hsl(261, 51%, 51%),
 );
 
 pre.code-block {
-    --line-indent: 3em;
     margin: 0;
     padding: 0.5em;
     border-radius: 0.25rem;
@@ -48,7 +47,7 @@ pre.code-block {
         &::before {
             content: attr(line);
             display: inline-block;
-            width: var(--line-indent);
+            width: 3em;
             text-align: right;
             padding-right: 0.75em;
             margin-right: 0.5em;
@@ -56,8 +55,29 @@ pre.code-block {
             color: hsl(0, 0, 60%);
         }
 
-        &[highlighted] {
+        &.marked {
             background-color: hsl(4, 44%, 86%);
+        }
+
+        > .marker {
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+
+            > span {
+                @include position(absolute, $top: 0, $bottom: 0);
+                margin-top: 2px;
+                text-decoration-line: underline;
+                text-decoration-color: #ff0000;
+                text-decoration-style: dashed;
+                text-decoration-thickness: 1px;
+            }
+        }
+
+        > code {
+            position: relative;
+            z-index: 1;
         }
     }
 }

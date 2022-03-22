@@ -7,30 +7,34 @@ let iframeRoot = null,
     clearCallback = null,
     minimizeCallback = null;
 
-window.renderCompileErrors = (errors) => {
+window.renderCompileErrors = (errors, highlighter) => {
     // clear the iframe root
     iframeRoot.innerHTML = '';
     // render compile errors
     iframeRoot.appendChild(
-        <CompileErrorContainer errors={errors}/>,
+        <CompileErrorContainer
+            errors={errors}
+            highlighter={highlighter}
+        />,
     );
     return true;
 };
 
-window.renderCompileWarnings = (warnings) => {
+window.renderCompileWarnings = (warnings, highlighter) => {
     // clear the iframe root
     iframeRoot.innerHTML = '';
     // render compile warnings
     iframeRoot.appendChild(
         <CompileWarningContainer
             warnings={warnings}
+            highlighter={highlighter}
             onMinimize={minimizeCallback}
         />,
     );
     return true;
 };
 
-window.renderRuntimeErrors = (runtimeErrors) => {
+window.renderRuntimeErrors = (runtimeErrors, highlighter) => {
     // clear the iframe root
     iframeRoot.innerHTML = '';
     // render runtime errors if any exist
@@ -38,6 +42,7 @@ window.renderRuntimeErrors = (runtimeErrors) => {
         iframeRoot.appendChild(
             <RuntimeErrorContainer
                 errors={runtimeErrors}
+                highlighter={highlighter}
                 onClose={clearCallback}
             />,
         );

@@ -1,7 +1,7 @@
 import RuntimeError from '../components/RuntimeError';
 import './RuntimeErrorContainer.scss';
 
-const RuntimeErrorContainer = ({ errors, onClose }) => {
+const RuntimeErrorContainer = ({ errors, highlighter, onClose }) => {
     if (errors.length === 1) {
         const [error] = errors;
         return (
@@ -19,7 +19,11 @@ const RuntimeErrorContainer = ({ errors, onClose }) => {
     let currentIndex = 0;
     const { length } = errors,
         errorElements = errors.map((e, i) => (
-            <RuntimeError hidden={i !== currentIndex} record={e}/>
+            <RuntimeError
+                hidden={i !== currentIndex}
+                record={e}
+                highlighter={highlighter}
+            />
         )),
         errorIndexLabel = <span className='error-index'>{currentIndex + 1}</span>,
         [arrowLeft, arrowRight] = [

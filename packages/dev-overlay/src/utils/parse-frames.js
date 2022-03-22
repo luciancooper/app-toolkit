@@ -40,7 +40,8 @@ export default function parseFrames({ stack }) {
                 fn,
                 compiled: {
                     file,
-                    loc: [ln && Number(ln), cn && Number(cn)],
+                    line: ln && Number(ln),
+                    column: cn && Number(cn),
                 },
             };
         });

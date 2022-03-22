@@ -4,7 +4,10 @@ import overlayScript from 'overlay-js';
 import overlayStyle from 'overlay-css';
 import parseFrames from './utils/parse-frames';
 import enhanceFrames from './utils/enhance-frames';
+import LazyHighlighter from './utils/lazy-highlighter';
 import warningIcon from './assets/warning.svg';
+
+const highlighter = new LazyHighlighter();
 
 let iframe = null,
     isLoadingIframe = false,
@@ -128,7 +131,7 @@ function updateOverlay(render) {
             warningsMinimized = false;
             // render compile warnings
             const [, warnings] = extractProblems(currentBuildData);
-            iframe.contentWindow.renderCompileWarnings(warnings);
+            iframe.contentWindow.renderCompileWarnings(warnings, highlighter);
             iframe.style.display = '';
         });
     });
@@ -168,7 +171,7 @@ window.__overlayReady = () => {
             // update warnings minimized flag
             warningsMinimized = true;
             // render runtime errors
-            const rendered = iframe.contentWindow.renderRuntimeErrors(runtimeErrors);
+            const rendered = iframe.contentWindow.renderRuntimeErrors(runtimeErrors, highlighter);
             iframe.style.display = rendered ? '' : 'none';
         });
     });
@@ -180,7 +183,12 @@ window.__overlayReady = () => {
 };
 
 export function setBuildData(data) {
+    if (currentBuildData && currentBuildData.hash !== data.hash) {
+        highlighter.reset();
+    }
     currentBuildData = data;
+    highlighter.addAll(data.fileMap);
+
     updateOverlay(() => {
         // check if webpack is recompiling
         if (currentBuildData.compiling) {
@@ -200,14 +208,14 @@ export function setBuildData(data) {
         const [errors, warnings] = extractProblems(currentBuildData);
         // check for errors
         if (errors.length) {
-            iframe.contentWindow.renderCompileErrors(errors);
+            iframe.contentWindow.renderCompileErrors(errors, highlighter);
             iframe.style.display = '';
             currentMode = 3;
             return;
         }
         // check for unminimized warnings
         if (warnings.length && !warningsMinimized) {
-            iframe.contentWindow.renderCompileWarnings(warnings);
+            iframe.contentWindow.renderCompileWarnings(warnings, highlighter);
             iframe.style.display = '';
             currentMode = 2;
             return;
@@ -219,7 +227,7 @@ export function setBuildData(data) {
         } else {
             currentMode = 0;
         }
-        const rendered = iframe.contentWindow.renderRuntimeErrors(runtimeErrors);
+        const rendered = iframe.contentWindow.renderRuntimeErrors(runtimeErrors, highlighter);
         iframe.style.display = rendered ? '' : 'none';
     });
 }
@@ -227,7 +235,7 @@ export function setBuildData(data) {
 function updateRuntimeErrors() {
     updateOverlay(() => {
         if (currentMode >= 2) return;
-        const rendered = iframe.contentWindow.renderRuntimeErrors(runtimeErrors);
+        const rendered = iframe.contentWindow.renderRuntimeErrors(runtimeErrors, highlighter);
         iframe.style.display = rendered ? '' : 'none';
     });
 }
@@ -263,7 +271,7 @@ async function handleRuntimeError(error, isUnhandledRejection = false) {
 
     // enhance stack frames
     try {
-        errorRecord.stackFrames = await enhanceFrames(stackFrames);
+        errorRecord.stackFrames = await enhanceFrames(stackFrames, highlighter);
     } catch (e) {
         console.log(`Could not enhance stack frames: ${e.message || e}`);
     }

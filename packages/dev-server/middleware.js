@@ -5,12 +5,30 @@
 
 const express = require('express'),
     chalk = require('chalk'),
+    fs = require('fs'),
     webpack = require('webpack'),
     webpackDevMiddleware = require('webpack-dev-middleware'),
     ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin'),
     webpackMessages = require('@lcooper/webpack-messages'),
     clearConsole = require('./lib/clear-console'),
     prependEntry = require('./lib/prepend-entry');
+
+function updateFileMap(latest) {
+    const { errors = [], warnings = [], fileMap = {} } = latest,
+        { errors: tsErrors = [], warnings: tsWarnings = [] } = latest.tsc || {};
+    // update latest file map
+    latest.fileMap = [...errors, ...warnings, ...tsErrors, ...tsWarnings]
+        .filter((e) => (e.type === 'tsc' && e.file))
+        .map(({ file }) => file)
+        // remove duplicate & non-existent files
+        .filter((file, i, files) => files.indexOf(file) === i && fs.existsSync(file))
+        // map file path to highlighted source
+        .reduce((acc, file) => {
+            if (!acc[file]) acc[file] = fs.readFileSync(file, 'utf-8');
+            return acc;
+        }, fileMap);
+    return latest;
+}
 
 function addCompilationResults(latest, stats, usingTypescript) {
     const info = {
@@ -23,7 +41,7 @@ function addCompilationResults(latest, stats, usingTypescript) {
         // extract errors & warnings
         ...webpackMessages.extract(stats),
     };
-    return (latest.hash && latest.hash !== info.hash) ? {
+    return updateFileMap((latest.hash && latest.hash !== info.hash) ? {
         ...info,
         compiling: false,
         awaitingTypeCheck: usingTypescript,
@@ -31,14 +49,14 @@ function addCompilationResults(latest, stats, usingTypescript) {
         ...latest,
         ...info,
         compiling: false,
-    };
+    });
 }
 
 function addTypescriptResults(latest, issues, compilation) {
     if (latest.hash && latest.hash !== compilation.hash) {
         throw new Error('TypeScript results out of sync with compilation');
     }
-    return {
+    return updateFileMap({
         ...latest,
         hash: compilation.hash,
         tsc: {
@@ -46,7 +64,7 @@ function addTypescriptResults(latest, issues, compilation) {
             warnings: issues.filter(({ severity }) => severity === 'warning').map(webpackMessages.tsError),
         },
         awaitingTypeCheck: false,
-    };
+    });
 }
 
 function publish(responses, payload) {

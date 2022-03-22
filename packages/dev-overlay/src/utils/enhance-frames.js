@@ -1,7 +1,7 @@
 import { SourceMapConsumer } from 'source-map';
 
 /**
- * Returns an insance of SourceMapConsumer for a given files uri and contents
+ * Returns an instance of SourceMapConsumer for a given files uri and contents
  * @param {string} fileUri - The uri of the source file.
  * @param {string} fileContents - The contents of the source file.
  * @returns {SourceMapConsumer}
@@ -28,72 +28,53 @@ async function getSourceMap(fileUri, fileContents) {
 }
 
 /**
- * Extract context lines from a source file str given a target line number
- * @param {string} src - The source code
- * @param {number} line - The line number to provide context around
- * @param {number} count - The number of lines of context
- * @returns {{ start: number, source: string }}
- */
-function getContextLines(src, line, count) {
-    const start = Math.max(0, line - 1 - count);
-    return {
-        start: start + 1,
-        source: src
-            .split('\n')
-            .slice(start, line + count)
-            .join('\n'),
-    };
-}
-
-/**
  * Adds original positions to an array of stack frames where source maps are available
  * @param {Object[]} frames - An array of stack frames
- * @param {number} [contextLines=3] - The number of lines of context to provide
+ * @param {LazyHighlighter} highlighter - Source highlighter instance
  * @returns {Object[]} - enhanced stack frames
  */
-export default async function enhanceFrames(frames, contextLines = 3) {
+export default async function enhanceFrames(frames, highlighter) {
     // create shallow copy of frames array
     const enhanced = frames.slice(),
         // create array of unique src file paths
-        files = frames.reduce((acc, { compiled: { file } }) => {
-            if (file && !acc.includes(file)) {
-                acc.push(file);
-            }
+        compiledFiles = frames.reduce((acc, { compiled: { file } }) => {
+            if (file && !acc.includes(file)) acc.push(file);
             return acc;
         }, []);
     // for each unique file, fetch original source & source map
-    await Promise.all(files.map(async (filePath) => {
+    await Promise.all(compiledFiles.map(async (filePath) => {
         if (/^webpack-internal:/.test(filePath)) {
             // TODO - set up route to serve webpack internal files
             return;
         }
-        const src = await fetch(filePath).then((res) => res.text());
+        const fileContent = await fetch(filePath).then((res) => res.text());
         let srcMap;
         try {
-            srcMap = await getSourceMap(filePath, src);
+            srcMap = await getSourceMap(filePath, fileContent);
         } catch (e) {
             return;
         }
-        // end if src map could not be created
-        if (srcMap == null) return;
         // modify each frame matching the file
-        enhanced.forEach((frame, i) => {
-            const { compiled: { file, loc: [line, column] } } = frame;
-            if (file !== filePath || line == null) return;
+        for (let i = 0; i < enhanced.length; i += 1) {
+            const frame = enhanced[i],
+                { file, line, column } = frame.compiled;
+            if (file !== filePath || line == null) continue;
             // get the original code position
-            const { line: l, column: c, source } = srcMap.originalPositionFor({ line, column }),
-                // get the original source content
-                sourceContent = source && srcMap.sourceContentFor(source);
+            const { source: srcFile, ...srcInfo } = srcMap.originalPositionFor({ line, column });
+            // stop if src file cannot be determined
+            if (!srcFile) continue;
+            // determine if file is external
+            const external = /\/(?:~|node_modules)\//.test(srcFile) || srcFile.trim().indexOf(' ') !== -1;
+            // store the mapped source file in lazy highlighter if path is not external
+            if (!external) {
+                highlighter.add(srcFile, () => srcMap.sourceContentFor(srcFile));
+            }
             // enhance the frame
             enhanced[i] = {
                 ...frame,
-                src: {
-                    file: source,
-                    loc: [l, c],
-                    ctx: sourceContent ? getContextLines(sourceContent, l, contextLines) : undefined,
-                },
+                src: { file: srcFile, external, ...srcInfo },
             };
-        });
+        }
         // destroy the SourceMapConsumer instance
         srcMap.destroy();
     }));

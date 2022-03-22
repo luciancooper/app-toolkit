@@ -1,35 +1,9 @@
 import CodeBlock from './CodeBlock';
 import './RuntimeError.scss';
 
-const StackFrame = ({ fn, compiled, src }) => {
-    const { file, loc: [line, col], ctx } = src || compiled;
-    // determine location string
-    let loc,
-        code;
-    if (file && typeof line === 'number') {
-        loc = `${file.replace(/^webpack:\/{3}/, '')}:${line}`;
-        if (col) loc += `:${col}`;
-    } else {
-        loc = 'unknown';
-    }
-    // determine if file location is internal
-    const isInternal = !file || /\/(?:~|node_modules)\//.test(file) || file.trim().indexOf(' ') !== -1;
-    // create code block if context exists and location is not an internal file
-    if (ctx && !isInternal) {
-        code = <CodeBlock line={line} {...ctx}/>;
-    }
-    // return stack frame element
-    return (
-        <div className='stack-frame'>
-            <div className='function'>{fn || '(anonymous function)'}</div>
-            <div className='location'>{loc}</div>
-            {code}
-        </div>
-    );
-};
-
 const RuntimeError = ({
     record: { error, isUnhandledRejection, stackFrames },
+    highlighter,
     hidden = false,
 }) => {
     let { name, message } = error;
@@ -45,7 +19,28 @@ const RuntimeError = ({
                 <div className='error-message'>{message}</div>
             </header>
             <div className='stack-trace'>
-                {stackFrames.map((frame) => <StackFrame {...frame}/>)}
+                {stackFrames.map(({ fn, compiled, src }) => {
+                    const { file, line, column } = src || compiled;
+                    // determine location string
+                    let loc = 'unknown',
+                        code = null;
+                    if (file && typeof line === 'number') {
+                        loc = `${file.replace(/^webpack:\/{3}/, '')}:${line}`;
+                        if (column) loc += `:${column}`;
+                        // determine if src code block is available
+                        if (highlighter.contains(file)) {
+                            code = <CodeBlock loc={{ start: { line, column } }} source={highlighter.get(file)}/>;
+                        }
+                    }
+                    // return stack frame element
+                    return (
+                        <div className='stack-frame'>
+                            <div className='function'>{fn || '(anonymous function)'}</div>
+                            <div className='location'>{loc}</div>
+                            {code}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );

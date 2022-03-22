@@ -1,4 +1,5 @@
 import ansiHtml from '../utils/ansi-html';
+import CodeBlock from './CodeBlock';
 import './CompileError.scss';
 
 const Badge = ({ type }) => (
@@ -64,33 +65,34 @@ const TypeScriptError = ({
     message,
     relativeFile,
     location,
-}) => {
-    const loc = location ? (
-        <span className='location'>
-            <span className='file'>{relativeFile}</span>
-            :
-            <span className='file-loc'>{location.start.line}</span>
-            :
-            <span className='file-loc'>{location.start.column}</span>
-        </span>
-    ) : (
-        <span className='location'>
-            <span className='file'>{relativeFile}</span>
-        </span>
-    );
-    return (
-        <div className='compile-error typescript'>
-            <header>
-                <Badge type={severity}/>
-                {loc}
-            </header>
-            <div>
-                <span className='code'>{`${code}:`}</span>
-                <span className='message'>{message}</span>
-            </div>
+    source,
+}) => (
+    <div className='compile-error typescript'>
+        <header>
+            <Badge type={severity}/>
+            {location ? (
+                <span className='location'>
+                    <span className='file'>{relativeFile}</span>
+                    :
+                    <span className='file-loc'>{location.start.line}</span>
+                    :
+                    <span className='file-loc'>{location.start.column}</span>
+                </span>
+            ) : (
+                <span className='location'>
+                    <span className='file'>{relativeFile}</span>
+                </span>
+            )}
+        </header>
+        <div>
+            <span className='code'>{`${code}:`}</span>
+            <span className='message'>{message}</span>
         </div>
-    );
-};
+        {(location && source) ? (
+            <CodeBlock loc={location} source={source}/>
+        ) : null}
+    </div>
+);
 
 const CompileError = ({ level, type, ...data }) => {
     switch (type) {

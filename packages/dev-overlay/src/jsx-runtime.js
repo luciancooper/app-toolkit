@@ -39,6 +39,8 @@ function setStyle(element, style) {
 
 function setProps(element, props) {
     Object.entries(props).forEach(([name, value]) => {
+        // ensure value is not null
+        if (value == null) return;
         // check for event
         if (name.startsWith('on') && name.toLowerCase() in window) {
             element.addEventListener(name.slice(2).toLowerCase(), value);

@@ -178,7 +178,8 @@ module.exports = (text) => {
         }
     }
     // convert tokens to html
-    return tokens
-        .map(({ str, style }) => (style ? `<span style='${style}'>${str}</span>` : str))
-        .join('');
+    return tokens.map(({ str, style }) => {
+        const encoded = str.replace(/[<>]/g, (c) => (c === '<' ? '&lt;' : '&gt;'));
+        return style ? `<span style='${style}'>${encoded}</span>` : encoded;
+    }).join('');
 };

@@ -6,7 +6,7 @@ const path = require('path'),
 
 module.exports = {
     mode: 'production',
-    entry: './src/overlay.js',
+    entry: './src/overlay/index.tsx',
     output: {
         path: path.resolve(__dirname, './dist'),
         filename: 'overlay.js',
@@ -30,6 +30,16 @@ module.exports = {
             new CssMinimizerPlugin(),
         ],
     },
+    resolve: {
+        extensions: [
+            '.mjs',
+            '.js',
+            '.jsx',
+            '.ts',
+            '.tsx',
+            '.json',
+        ],
+    },
     module: {
         rules: [
             // process svg
@@ -42,7 +52,7 @@ module.exports = {
             },
             // process js
             {
-                test: /\.(?:js|mjs|jsx)$/,
+                test: /\.(?:js|mjs|jsx|ts|tsx)$/,
                 exclude: /node_modules/,
                 loader: 'babel-loader',
                 options: {
@@ -53,7 +63,14 @@ module.exports = {
                         '@babel/preset-env',
                         ['@babel/preset-react', {
                             runtime: 'automatic',
-                            importSource: path.resolve(__dirname, './src'),
+                            importSource: path.resolve(__dirname, './src/overlay'),
+                        }],
+                        '@babel/preset-typescript',
+                    ],
+                    plugins: [
+                        ['@babel/plugin-transform-runtime', {
+                            absoluteRuntime: path.dirname(require.resolve('@babel/runtime/package.json')),
+                            version: require('@babel/runtime/package.json').version,
                         }],
                     ],
                 },
@@ -89,7 +106,6 @@ module.exports = {
                     {
                         loader: 'sass-loader',
                         options: {
-                            // eslint-disable-next-line global-require
                             implementation: require('sass'),
                         },
                     },

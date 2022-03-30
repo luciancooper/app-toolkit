@@ -4,7 +4,7 @@ const path = require('path'),
     chalk = require('chalk'),
     chokidar = require('chokidar'),
     webpack = require('webpack'),
-    webpackMessages = require('@lcooper/webpack-messages'),
+    webpackMessages = require('@lcooper/webpack-messages').default,
     overlayConfig = require('../webpack.config.overlay'),
     config = require('../webpack.config');
 
@@ -21,7 +21,8 @@ function compile(webpackConfig) {
                 console.log(chalk`{bold.red Failed to compile} {cyan ${filename}}\n`);
                 console.log(err.message || err);
                 // reject promise
-                return void reject(err);
+                reject(err);
+                return;
             }
             // format webpack error / warning messages
             const { errors, warnings } = webpackMessages(stats);
@@ -30,7 +31,8 @@ function compile(webpackConfig) {
                 // log errors
                 console.log(chalk`{bold.red Failed to compile.} {cyan ${filename}}\n${errors.join('')}`);
                 // reject promise
-                return void reject(new Error(`Failed to compile '${filename}'`));
+                reject(new Error(`Failed to compile '${filename}'`));
+                return;
             }
             // check for warnings
             if (warnings.length) {
@@ -48,10 +50,6 @@ function compile(webpackConfig) {
 
 async function build() {
     console.log(chalk`📦  {bold building dev-overlay}`);
-
-    // clear the output directory
-    fs.emptyDirSync(distPath);
-
     // compile overlay
     let overlayStats;
     try {

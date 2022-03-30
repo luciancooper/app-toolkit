@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "lib",
+    "tsBuildInfoFile": "lib/.tsbuildinfo"
+  },
+  "include": [
+    "src"
+  ],
+  "exclude": [],
+  "references": [
+    { "path": "../dev-server" },
+    { "path": "../webpack-messages" }
+  ]
+}

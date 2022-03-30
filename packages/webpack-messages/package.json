@@ -2,17 +2,28 @@
   "name": "@lcooper/webpack-messages",
   "version": "0.1.0",
   "description": "Webpack error and warning message formatter",
-  "main": "index.js",
-  "types": "index.d.ts",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": "./lib/index.js",
+    "./eslint-formatter": "./lib/eslint-formatter.js",
+    "./stylelint-formatter": "./lib/stylelint-formatter.js",
+    "./package.json": "./package.json"
+  },
   "files": [
-    "index.js",
-    "index.d.ts",
     "lib",
-    "eslint-formatter.js",
-    "stylelint-formatter.js"
+    "!**/*.tsbuildinfo"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "test": "tsc --noEmit",
+    "clean": "rimraf lib",
+    "build": "tsc -b tsconfig.json",
+    "watch": "tsc -b tsconfig.json --watch",
+    "prepublishOnly": "yarn test && yarn build"
+  },
+  "engines": {
+    "node": ">=14"
   },
   "publishConfig": {
     "access": "public"
@@ -35,10 +46,17 @@
   },
   "homepage": "https://github.com/luciancooper/app-toolkit/tree/main/packages/webpack-messages#readme",
   "dependencies": {
+    "@types/eslint": "^8.4.1",
     "chalk": "^4.1.0",
     "js-tokens": "^7.0.0"
   },
   "peerDependencies": {
-    "webpack": "4.x.x || 5.x.x"
+    "stylelint": ">=14",
+    "webpack": "5.x.x"
+  },
+  "peerDependenciesMeta": {
+    "stylelint": {
+      "optional": true
+    }
   }
 }

@@ -2,19 +2,30 @@
   "name": "@lcooper/app-scripts",
   "version": "0.2.1",
   "description": "Configuration and scripts for js web apps",
-  "main": "index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "bin": {
-    "app-scripts": "./bin/app-scripts.js"
+    "app-scripts": "./lib/bin/app-scripts.js"
+  },
+  "exports": {
+    ".": "./lib/index.js",
+    "./middleware": "./lib/middleware.js",
+    "./package.json": "./package.json"
   },
   "files": [
-    "middleware.js",
-    "bin",
-    "config",
     "lib",
-    "scripts"
+    "!**/*.tsbuildinfo"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint .",
+    "test": "tsc --noEmit",
+    "clean": "rimraf lib",
+    "build": "tsc -b tsconfig.json",
+    "watch": "tsc -b tsconfig.json --watch",
+    "prepublishOnly": "yarn test && yarn build"
+  },
+  "engines": {
+    "node": ">=14"
   },
   "publishConfig": {
     "access": "public"
@@ -58,7 +69,7 @@
     "fs-extra": "^9.0.1",
     "globby": "^11.0.1",
     "html-webpack-plugin": "^5.5.0",
-    "mini-css-extract-plugin": "^2.4.5",
+    "mini-css-extract-plugin": "^2.6.0",
     "mini-svg-data-uri": "^1.2.3",
     "postcss": "^8.4.5",
     "postcss-loader": "^6.2.1",

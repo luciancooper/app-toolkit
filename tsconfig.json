@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "module": "CommonJS",
+    "target": "ES2021",
+    "lib": [
+      "ES2020"
+    ],
+    "allowJs": true,
+    "composite": true,
+    "outDir": "lib",
+    "tsBuildInfoFile": "lib/.tsbuildinfo",
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
+    "isolatedModules": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "newLine": "lf",
+    "noEmitOnError": true,
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@lcooper/dev-overlay": [
+        "./packages/dev-overlay/src"
+      ],
+      "@lcooper/dev-server": [
+        "./packages/dev-server/src"
+      ],
+      "@lcooper/webpack-messages": [
+        "./packages/webpack-messages/src"
+      ],
+      "@lcooper/webpack-messages/*": [
+        "./packages/webpack-messages/src/*"
+      ],
+    }
+  },
+  "include": [
+    "**/*",
+    "**/.*"
+  ],
+  "exclude": [
+    "**/dist/**/*",
+    "**/lib/**/*",
+    "packages/*/src/**/*"
+  ]
+}

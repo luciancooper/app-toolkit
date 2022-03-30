@@ -31,3 +31,6 @@ logs
 
 # dist directory
 dist
+
+# lib directories
+lib

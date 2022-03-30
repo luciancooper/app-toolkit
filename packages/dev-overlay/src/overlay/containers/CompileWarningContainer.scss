@@ -1,0 +1,55 @@
+@import '~@lcooper/sass-utils';
+
+.compile-warnings {
+    @include flex(column);
+    min-width: 50%;
+    max-width: 100%;
+    position: relative;
+    overflow: hidden;
+
+    > header {
+        padding: 1em;
+        font-size: 1.2em;
+        font-weight: bold;
+        text-align: center;
+        color: var(--yellow);
+    }
+
+    > .error-container {
+        overflow: auto;
+    }
+}
+
+.minimize-button {
+    --background: transparent;
+    --filter: invert(80%);
+    @include position(absolute, $top: 0, $right: 0);
+    @include flex(row, $align: center, $justify: center);
+    padding: 0.2em;
+    border-radius: 0.25em;
+    background: var(--background);
+    cursor: pointer;
+    z-index: 1000;
+
+    &:not(:active):hover {
+        --background: #{hsl(0, 0%, 85%)};
+        --filter: invert(30%);
+    }
+
+    &:active {
+        --background: #{hsl(0, 0%, 75%)};
+        --filter: invert(30%);
+    }
+
+    &::before {
+        @include size(1.5em);
+        content: '';
+        display: block;
+        background-size: 100%;
+        background-position: 50%;
+        background-origin: border-box;
+        background-repeat: no-repeat;
+        background-image: url('../../assets/minimize.svg');
+        filter: var(--filter);
+    }
+}
